@@ -15,6 +15,6 @@ def main():
     squad = comunio.get_squad(comunio.get_user_id())
     for player in squad:
         print(player['name'])
-        
+
 if __name__ == '__main__':
     main()

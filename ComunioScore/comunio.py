@@ -201,8 +201,6 @@ class Comunio:
 
 if __name__ == '__main__':
     comunio = Comunio()
-    print(comunio.login(username='bierschi', password='test1234'))
-    print(comunio.get_squad(13068277))
-    #for user in comunio.get_all_user_ids():
-    #    print(comunio.get_squad(user))
+    print(comunio.login(username='', password=''))
+    
 
