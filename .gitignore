@@ -105,4 +105,6 @@ venv.bak/
 
 #project
 .idea/
-BreachCompilation/
+ComunioScore/config
+ComunioScore/json_data
+notes.txt
