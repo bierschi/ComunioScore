@@ -1,0 +1,15 @@
+[Unit]
+Description=application ComunioScore
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ComunioScoreApp
+Restart=always
+User=christian
+Group=christian
+UMask=002
+
+[Install]
+WantedBy=multi-user.target

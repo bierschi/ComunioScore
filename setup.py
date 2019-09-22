@@ -16,17 +16,16 @@ setup(
     version=__version__,
     description="Visualizes score from SofaScore with players from comunio",
     long_description=readme + "\n\n" + changelog,
-    long_description_content_type='text/markdown',
     license=__license__,
     author=__author__,
     author_email=__email__,
-    url="",
+    url="https://github.com/bierschi/ComunioScore",
     packages=find_packages(),
     data_files=[
-        'requirements.txt', 'LICENSE', 'CHANGELOG.rst'
+        ('/etc/systemd/system', ['service/ComunioScoreApp.service'])
     ],
     install_requires=required,
-    keywords=[],
+    keywords=["Comunio", "Sofascore"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -49,7 +48,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-
+            'ComunioScoreApp = ComunioScore.app:main'
         ],
     },
     zip_safe=True,

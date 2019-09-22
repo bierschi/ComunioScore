@@ -13,6 +13,7 @@ def main():
     comunio = Comunio()
     comunio.login(username=username, password=password)
     squad = comunio.get_squad(comunio.get_user_id())
+    print(comunio.get_all_user_ids())
     for player in squad:
         print(player['name'])
 

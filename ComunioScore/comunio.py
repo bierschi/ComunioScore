@@ -1,10 +1,14 @@
-import os
 import json
 import requests
 
 
 class Comunio:
+    """ class Comunio to request data from logged in community
 
+    USAGE:
+            comunio = Comunio()
+            comunio.login(username='', password='')
+    """
     def __init__(self):
         # user
         self.username = ''
@@ -14,9 +18,9 @@ class Comunio:
         self.user_budget = ''
         self.user_teamvalue = ''
 
-        # comunity
+        # community
         self.communityid = ''               # id of community from logged in user
-        self.comunityname = ''              # name of community
+        self.communityname = ''             # name of community
 
         self.userids = list()               # list of all userids in community of logged in user
         self.placement_and_userids = []     # dict with userid as key and placement as value
@@ -42,11 +46,11 @@ class Comunio:
         }
 
     def login(self, username, password):
-        """
+        """ comunio login with username and password
 
-        :param username:
-        :param password:
-        :return:
+        :param username: username of account
+        :param password: password of account
+        :return: auth_token
         """
 
         data_login = [('username', username), ('password', password),]
@@ -94,7 +98,7 @@ class Comunio:
         self.leader = json_data['user']['isLeader']
         self.user_budget = json_data['user']['budget']
         self.user_teamvalue = json_data['user']['teamValue']
-        self.comunityname = json_data['community']['name']
+        self.communityname = json_data['community']['name']
         self.communityid = json_data['community']['id']
 
         return request_info.status_code
@@ -102,7 +106,7 @@ class Comunio:
     def get_all_user_ids(self):
         """ get all user ids in community
 
-        :return: list containing all user ids
+        :return: list containing all user ids with name as dict()
         """
 
         headers_standings = {
@@ -127,36 +131,39 @@ class Comunio:
         for id in json_data.get('items'):
             tempid = id
         for id in json_data['items'][tempid]['players']:
-            self.userids.append(str(id['id']))
+            player_dict = dict()
+            player_dict['id'] = id['id']
+            player_dict['name'] = id['name']
+            self.userids.append(player_dict)
 
         return self.userids
 
     def get_aut_token(self):
-        """
+        """ get auth token
 
-        :return:
+        :return: auth_token as string
         """
         return self.auth_token
 
     def get_user_id(self):
-        """
+        """ get user id from logged in user
 
-        :return:
+        :return: userid as int
         """
         return self.userid
 
     def get_community_id(self):
-        """
+        """ get community id from logged in user
 
-        :return:
+        :return: communityid as int
         """
         return self.communityid
 
     def get_wealth(self, userid):
-        """
+        """ get wealth from given userid
 
-        :param userid:
-        :return:
+        :param userid: int number
+        :return: wealth as int number
         """
 
         headers_info = {
@@ -172,15 +179,15 @@ class Comunio:
 
         request_info = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad-latest', headers=headers_info)
         json_data = json.loads(request_info.text)
-        print(json_data)
+
         wealth = int(json_data['matchday']['budget'])
         return wealth
 
     def get_squad(self, userid):
-        """
+        """ get squad from given userid
 
-        :param userid:
-        :return:
+        :param userid: int number
+        :return: dict containing the squad
         """
 
         header = {
@@ -198,9 +205,32 @@ class Comunio:
         json_data = squad_request.json()
         return json_data['items']
 
+    def get_comunio_user_data(self):
+        """ get comunio user data -> id, name, squad
+
+        :return: dict with id, name, squad in list
+        """
+        users = self.get_all_user_ids()
+        comunio_user_data = list()
+        for user in users:
+            user_data = user.copy()
+            squad = self.get_squad(user['id'])
+            squad_list = list()
+            for player in squad:
+                player_dict = dict()
+                player_dict['name'] = player['name']
+                player_dict['club'] = player['club']['name']
+                squad_list.append(player_dict)
+            user_data.update({'squad': squad_list})
+            comunio_user_data.append(user_data)
+
+        return comunio_user_data
+
 
 if __name__ == '__main__':
     comunio = Comunio()
-    print(comunio.login(username='', password=''))
-    
+    comunio.login(username='', password='')
+    data = comunio.get_comunio_user_data()
+    for d in data:
+        print(d)
 
