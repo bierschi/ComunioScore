@@ -1,5 +1,5 @@
-from BreachCompilationRestAPI.db.connector import DBConnector
-from BreachCompilationRestAPI.exceptions.db import DBCreatorError
+from ComunioScore.db.connector import DBConnector
+from ComunioScore.exceptions.db import DBCreatorError
 
 
 class Database:

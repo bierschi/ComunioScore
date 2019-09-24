@@ -1,8 +1,8 @@
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 
-from BreachCompilationRestAPI.db.context import CursorContextManager, ConnectionContextManager
-from BreachCompilationRestAPI.exceptions.db import DBConnectorError
+from ComunioScore.db.context import CursorContextManager, ConnectionContextManager
+from ComunioScore.exceptions.db import DBConnectorError
 
 
 class DBConnector:

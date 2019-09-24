@@ -1,4 +1,4 @@
-from BreachCompilationRestAPI.db.connector import DBConnector
+from ComunioScore.db.connector import DBConnector
 
 
 class DBFetcher(DBConnector):
