@@ -138,6 +138,35 @@ class Comunio:
 
         return self.userids
 
+    def get_player_standings(self):
+        """ get the player standings
+
+        :return: list with dicts of player standings
+        """
+
+        headers_standings = {
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
+            'Accept-Language': 'de-DE,en-EN;q=0.9',
+            'Authorization': 'Bearer ' + self.auth_token,
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'http://www.comunio.de/standings/total',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
+        }
+
+        params_standings = (('period', 'season'),)
+        request_standing = requests.get('https://api.comunio.de/communities/' + self.communityid +
+                                       '/standings', headers=headers_standings, params=params_standings)
+
+        json_data = json.loads(request_standing.text)
+        tempid = ''
+        # workaround to get id of object that stores all user ids
+        for id in json_data.get('items'):
+            tempid = id
+
+        return json_data['items'][tempid]['players']
+
     def get_aut_token(self):
         """ get auth token
 
@@ -158,6 +187,13 @@ class Comunio:
         :return: communityid as int
         """
         return self.communityid
+
+    def get_community_name(self):
+        """ get community name from logged in user
+
+        :return: community name as string
+        """
+        return self.communityname
 
     def get_wealth(self, userid):
         """ get wealth from given userid
@@ -218,8 +254,9 @@ class Comunio:
             squad_list = list()
             for player in squad:
                 player_dict = dict()
-                player_dict['name'] = player['name']
-                player_dict['club'] = player['club']['name']
+                player_dict['name']     = player['name']
+                player_dict['club']     = player['club']['name']
+                player_dict['position'] = player['position']
                 squad_list.append(player_dict)
             user_data.update({'squad': squad_list})
             comunio_user_data.append(user_data)
@@ -230,7 +267,6 @@ class Comunio:
 if __name__ == '__main__':
     comunio = Comunio()
     comunio.login(username='', password='')
-    data = comunio.get_comunio_user_data()
-    for d in data:
-        print(d)
+    data = comunio.get_player_standings()
+    print(data)
 
