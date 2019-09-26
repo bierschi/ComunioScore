@@ -2,7 +2,7 @@ from ComunioScore.db.connector import DBConnector
 
 
 class DBFetcher(DBConnector):
-    """ class DBFetcher
+    """ class DBFetcher to fetch data from database tables
 
     USAGE:
             fetcher = DBFetcher()
@@ -41,7 +41,7 @@ class DBFetcher(DBConnector):
             return cursor.fetchmany(size=size)
 
     def all(self, sql, autocommit=False):
-        """
+        """ fetches all rows from sql statement
 
         :param sql: sql statement
         :param autocommit: True or False

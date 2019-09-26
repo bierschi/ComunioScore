@@ -12,12 +12,14 @@ class DBConnector:
             connector = DBConnector()
             connector.connect(host, port, username, password, dbname, minConn=1, maxConn=10)
     """
+    # attribute for connection pools
+    pool = None
+
     def __init__(self):
+        pass
 
-        # attribute for connection pools
-        self.pool = None
-
-    def connect(self, host, port, username, password, dbname, minConn=1, maxConn=10):
+    @classmethod
+    def connect(cls, host, port, username, password, dbname, minConn=1, maxConn=10):
         """ connect to ThreadedConnectionPool
 
         :param host: hostname of database
@@ -30,14 +32,16 @@ class DBConnector:
         """
         try:
             # create connection pool
-            self.pool = ThreadedConnectionPool(minconn=minConn, maxconn=maxConn, user=username,
+            cls.pool = ThreadedConnectionPool(minconn=minConn, maxconn=maxConn, user=username,
                                                password=password, host=host, port=port, database=dbname)
+
         except psycopg2.DatabaseError as e:
             print(e)
 
     def get_cursor(self, autocommit=False):
         """ get a cursor object from ConnectionPool
 
+        :param autocommit: bool to enable autocommit
         :return: cursor object
         """
         if self.pool is not None:
@@ -48,6 +52,7 @@ class DBConnector:
     def get_conn(self, autocommit=False):
         """ get a connection object from ConnectionPool
 
+        :param autocommit: bool to enable autocommit
         :return: connection object
         """
         if self.pool is not None:

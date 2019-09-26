@@ -1,4 +1,4 @@
-__title__ = "ComunioScoreApp.service"
+__title__ = "ComunioScoreApp"
 __version_info__ = ('1', '0', '0')
 __version__ = ".".join(__version_info__)
 __author__ = "Christian Bierschneider"

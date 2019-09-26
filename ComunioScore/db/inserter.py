@@ -32,6 +32,10 @@ class DBInserter(DBConnector):
                 data = (13, "test", 353.24)
 
                 row(sql=sql, data=data)
+
+        :param sql: sql statement
+        :param data: data as a set
+        :param autocommit: bool to enable autocommit
         """
         with self.get_cursor(autocommit=autocommit) as cursor:
             cursor.execute(sql, data)
@@ -43,6 +47,10 @@ class DBInserter(DBConnector):
                 datas = [(13, "test", 353.24), (14, "test2", 400.02)]
 
                 many_rows(sql=sql, datas=datas)
+
+        :param sql: sql statement
+        :param datas: data as a list
+        :param autocommit: bool to enable autocomm
         """
         if isinstance(datas, list):
             with self.get_cursor(autocommit=autocommit) as cursor:

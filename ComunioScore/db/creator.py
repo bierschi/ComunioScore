@@ -167,9 +167,8 @@ class DBCreator(DBConnector):
         super().__init__()
 
     def build(self, obj):
-        """
+        """ build object depending on given 'obj'
 
-        :return:
         """
         if isinstance(obj, Database):
             self.__database(obj)
@@ -181,7 +180,7 @@ class DBCreator(DBConnector):
             raise DBCreatorError("Provide either a Database, Table or Column object")
 
     def __database(self, database_obj):
-        """
+        """ creates a database
 
         :param database_obj:
         """
@@ -189,14 +188,14 @@ class DBCreator(DBConnector):
             cursor.execute(str(database_obj))
 
     def __table(self, table_obj):
-        """
+        """ creates a table
 
         """
         with self.get_cursor() as cursor:
             cursor.execute(str(table_obj))
 
     def __column(self, column_obj):
-        """
+        """ creates a column
 
         :return:
         """

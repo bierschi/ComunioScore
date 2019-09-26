@@ -1,6 +1,8 @@
 import configparser
 from ComunioScore.comunio import Comunio
+from ComunioScore.db.connector import DBConnector
 from ComunioScore.db.inserter import DBInserter
+from ComunioScore.db.creator import DBCreator, Table, Column
 from ComunioScore import ROOT_DIR
 
 config = configparser.ConfigParser()
@@ -27,14 +29,19 @@ class DBAgent:
         self.comunio.login(username=self.username, password=self.password)
 
         # create database class
+        DBConnector.connect(host=self.db_host, port=self.db_port, username=self.db_user, password=self.db_password, dbname=self.db_name)
+        self.creator = DBCreator()
         self.dbinserter = DBInserter()
-        self.dbinserter.connect(host=self.db_host, port=self.db_port, username=self.db_user, password=self.db_password, dbname=self.db_name)
+        #DBInserter.connect()
+        #self.dbinserter.connect(host=self.db_host, port=self.db_port, username=self.db_user, password=self.db_password, dbname=self.db_name)
 
-    def __create_tables_for_communioscore(self):
+    def create_tables_for_communioscore(self):
         """
 
         :return:
         """
+
+        self.creator.build(Table("communityuser2", Column(name="id", type="bigint", table_name="communityuser2", schema="comunio")))
         pass
 
     def load_and_insert_communityuser(self):
@@ -65,4 +72,5 @@ class DBAgent:
 
 if __name__ == '__main__':
     agent = DBAgent()
-    agent.load_and_insert_squad()
+    #agent.load_and_insert_squad()
+    agent.create_tables_for_communioscore()
