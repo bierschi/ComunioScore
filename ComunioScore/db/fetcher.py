@@ -1,3 +1,4 @@
+import logging
 from ComunioScore.db.connector import DBConnector
 
 
@@ -11,6 +12,8 @@ class DBFetcher(DBConnector):
 
     """
     def __init__(self):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class DBFetcher')
 
         # init connector base class
         super().__init__()
@@ -51,10 +54,3 @@ class DBFetcher(DBConnector):
         with self.get_cursor(autocommit=autocommit) as cursor:
             cursor.execute(sql)
             return cursor.fetchall()
-
-
-if __name__ == '__main__':
-    db = DBFetcher()
-    db.connect(username="christian", password="", host="192.168.178.37", port="5432", dbname="")
-    sql = "select * from test.\"0\" limit 500;"
-    print(db.many(sql, 500))

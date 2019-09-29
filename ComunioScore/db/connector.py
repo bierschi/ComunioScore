@@ -1,3 +1,4 @@
+import logging
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 
@@ -16,7 +17,8 @@ class DBConnector:
     pool = None
 
     def __init__(self):
-        pass
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class DBConnector')
 
     @classmethod
     def connect(cls, host, port, username, password, dbname, minConn=1, maxConn=10):
@@ -36,7 +38,7 @@ class DBConnector:
                                                password=password, host=host, port=port, database=dbname)
 
         except psycopg2.DatabaseError as e:
-            print(e)
+            logging.getLogger('ComunioScoreApp').error('Could not connect to ThreadedConnectionPool: {}'.format(e))
 
     def get_cursor(self, autocommit=False):
         """ get a cursor object from ConnectionPool

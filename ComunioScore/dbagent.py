@@ -1,5 +1,7 @@
-import configparser
 import threading
+import logging
+import configparser
+from time import sleep
 from ComunioScore.comunio import Comunio
 from ComunioScore.db.connector import DBConnector
 from ComunioScore.db.inserter import DBInserter
@@ -15,6 +17,8 @@ class DBAgent:
             dbagent.start()
     """
     def __init__(self, config_file):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class DBAgent')
 
         self.config_file = config_file
         self.config = configparser.ConfigParser()
@@ -25,7 +29,7 @@ class DBAgent:
             # check if keys are readable
             self.comunioscore_schema = self.config.get('comunioscore_database', 'schema')
         except (KeyError, configparser.NoSectionError) as e:
-            print(e)
+            self.logger.error("failed to load config file. Try to use absolute path: {}".format(e))
             # if Keyerror occurs, check for absolute path
             self.config = configparser.ConfigParser()
             self.config.read(config_file)
@@ -52,7 +56,7 @@ class DBAgent:
         # create database class
         DBConnector.connect(host=self.db_host, port=self.db_port, username=self.db_user, password=self.db_password,
                             dbname=self.db_name, minConn=1, maxConn=5)
-        self.creator = DBCreator()
+        self.dbcreator = DBCreator()
         self.dbinserter = DBInserter()
 
         # create run thread
@@ -64,10 +68,12 @@ class DBAgent:
 
         """
         # create schema if not exists comunioscore
-        self.creator.build(obj=Schema(name=self.comunioscore_schema))
+        self.logger.info("create Schema {}".format(self.comunioscore_schema))
+        self.dbcreator.build(obj=Schema(name=self.comunioscore_schema))
 
         # create table if not exists communityuser
-        self.creator.build(obj=Table(self.comunioscore_table_communityuser,
+        self.logger.info("create Table {}".format(self.comunioscore_table_communityuser))
+        self.dbcreator.build(obj=Table(self.comunioscore_table_communityuser,
                                      Column(name="userid", type="bigint", prim_key=True),
                                      Column(name="username", type="text"),
                                      Column(name="community", type="text"),
@@ -76,7 +82,8 @@ class DBAgent:
                                      schema=self.comunioscore_schema))
 
         # create table if not exists squad
-        self.creator.build(obj=Table(self.comunioscore_table_squad,
+        self.logger.info("create Table {}".format(self.comunioscore_table_squad))
+        self.dbcreator.build(obj=Table(self.comunioscore_table_squad,
                                      Column(name="userid", type="bigint"),
                                      Column(name="username", type="text"),
                                      Column(name="playername", type="text", prim_key=True),
@@ -92,6 +99,7 @@ class DBAgent:
             if isinstance(daemon, bool):
                 self.__thread.daemon = daemon
                 self.__running = True
+                self.logger.info("start the dbagent run thread")
                 self.__thread.start()
             else:
                 raise TypeError("'daemon' must be type of boolean")
@@ -102,12 +110,14 @@ class DBAgent:
         """
         if self.__thread:
             self.__running = False
+            self.logger.info("stop the dbagent run thread")
             self.__thread.join()
 
     def insert_communityuser(self):
         """ insert communityuser data into database
 
         """
+        self.logger.info("insert communityuser data into dabase")
         communityuser = list()
         player_standings = self.comunio.get_player_standings()
         communityname = self.comunio.get_community_name()
@@ -122,6 +132,7 @@ class DBAgent:
         """ updates communityuser data in database
 
         """
+        self.logger.info("updating communityuser data")
         player_standings = self.comunio.get_player_standings()
         communityname = self.comunio.get_community_name()
 
@@ -134,7 +145,7 @@ class DBAgent:
         """ insert squad data into database
 
         """
-
+        self.logger.info("insert squad data into database")
         users = self.comunio.get_comunio_user_data()
         sql = "insert into {}.{} (userid, username, playername, playerposition, club) values(%s, %s, %s, %s, %s)".format(self.comunioscore_schema, self.comunioscore_table_squad)
         for user in users:
@@ -142,10 +153,10 @@ class DBAgent:
                 self.dbinserter.row(sql=sql, data=(user['id'],user['name'], player['name'], player['position'], player['club']))
 
     def delete_communityuser(self):
-        """
+        """ deletes communityuser data from database
 
-        :return:
         """
+        self.logger.info("deleting communityuser data from database")
         sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_communityuser)
         self.dbinserter.sql(sql=sql)
 
@@ -153,7 +164,7 @@ class DBAgent:
         """ deletes squad data from database
 
         """
-
+        self.logger.info("deleting squad data from database")
         sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
         self.dbinserter.sql(sql=sql)
 
@@ -173,7 +184,9 @@ class DBAgent:
         # go into endless loop
         while self.__running:
             print("loop")
-            pass
+            #sleep(43200)
+
+            sleep(1)
 
 
 if __name__ == '__main__':

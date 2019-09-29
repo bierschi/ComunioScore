@@ -1,3 +1,4 @@
+import logging
 
 
 class CursorContextManager:
@@ -8,7 +9,6 @@ class CursorContextManager:
 
     """
     def __init__(self, pool, autocommit=False):
-
         self.pool = pool
         self.autocommit = autocommit
         self.conn = None
@@ -52,14 +52,13 @@ class ConnectionContextManager:
 
     """
     def __init__(self, pool, autocommit=False):
-
         self.pool = pool
         self.autocommit = autocommit
 
     def __enter__(self):
         """ implicit enter context for a connection object generated from ThreadedConnectionPool
 
-        :return:
+        :return: connection object
         """
 
         self.conn = self.pool.getconn()

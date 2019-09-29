@@ -1,4 +1,5 @@
 import json
+import logging
 import requests
 
 
@@ -10,6 +11,9 @@ class Comunio:
             comunio.login(username='', password='')
     """
     def __init__(self):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class Comunio')
+
         # user
         self.username = ''
         self.password = ''
@@ -67,12 +71,13 @@ class Comunio:
 
             self.auth_token = str(json_data['access_token'])
             if self.__set_user_and_community_info() != 200:
+                self.logger.error("failed to set user and community attributes")
                 raise AttributeError("failed to set user and community attributes")
 
             return self.auth_token
 
         except requests.exceptions.RequestException as e:
-            print(e)
+            self.logger.error("Got RequestException: {}".format(e))
 
     def __set_user_and_community_info(self):
         """ sets user and community specific attributes

@@ -1,16 +1,17 @@
 import configparser
+import logging
 from ComunioScore.routes.router import Router
 from ComunioScore.api import APIHandler
 from ComunioScore.dbagent import DBAgent
-from ComunioScore import ROOT_DIR
-
-#config = configparser.ConfigParser()
-#config.read(ROOT_DIR + '/config/cfg.ini')
+from ComunioScore.utils.logger import Logger
 
 
 class ComunioScore:
 
     def __init__(self, name):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class ComunioScore')
+
         self.name = name
 
         # defines the api handler methods
@@ -30,11 +31,14 @@ class ComunioScore:
         :param port: port for the webserver
         :param debug: debug mode true or false
         """
-
+        self.logger.info("running application on port: {}".format(port))
         self.router.run(port=port, debug=debug)
 
 
 def main():
+    # set up logger instancet
+    logger = Logger(name='ComunioScoreApp', level='info', log_folder='var/log/', debug=True)
+    logger.info("start application ComunioScoreApp")
 
     # create application instance
     cs = ComunioScore(name="ComunioScoreApp")

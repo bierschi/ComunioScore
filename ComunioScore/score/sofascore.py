@@ -1,3 +1,4 @@
+import logging
 import requests
 
 
@@ -10,6 +11,8 @@ class SofaScore:
 
     """
     def __init__(self):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class SofaScore')
 
         # urls to retrieve specific data
         self.date_url         = "https://www.sofascore.com/football//{date}/json"  # yyyy-mm-dd
@@ -29,7 +32,7 @@ class SofaScore:
             return json_dict
 
         except Exception as e:
-            print(e)
+            self.logger.error("Could no retrieve data from Sofascore: {}".format(e))
 
     def get_date_data(self, date):
         """ get data from given date
@@ -59,7 +62,6 @@ class SofaScore:
         """
         # create correct url
         lineups_url = self.lineups_url.format(event_id=match_id)
-
         return self.__request_api(url=lineups_url)
 
     def get_player_stats(self, match_id, player_id):

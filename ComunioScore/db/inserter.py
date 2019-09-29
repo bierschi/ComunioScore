@@ -1,3 +1,4 @@
+import logging
 from ComunioScore.db.connector import DBConnector
 from ComunioScore.exceptions.db import DBInserterError
 
@@ -12,6 +13,8 @@ class DBInserter(DBConnector):
 
     """
     def __init__(self):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class DBInserter')
 
         # init connector base class
         super().__init__()
@@ -27,9 +30,8 @@ class DBInserter(DBConnector):
             cursor.execute(sql)
 
     def one(self):
-        """
+        """ insert one entry in a row
 
-        :return:
         """
         pass
 

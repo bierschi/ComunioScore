@@ -1,3 +1,4 @@
+import logging
 from ComunioScore.db.connector import DBConnector
 from ComunioScore.exceptions.db import DBCreatorError
 
@@ -10,6 +11,9 @@ class Database:
 
     """
     def __init__(self, name):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class Database')
+
         self.name = name
 
     def __str__(self):
@@ -35,6 +39,9 @@ class Schema:
 
     """
     def __init__(self, name):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class Schema')
+
         self.name = name
 
         self.sql_schema = "create schema if not exists {}".format(self.name)
@@ -63,6 +70,8 @@ class Table:
 
     """
     def __init__(self, name, *columns, schema=None):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class Table')
 
         self.name = name
         self.schema = schema
@@ -117,6 +126,8 @@ class Column:
 
     """
     def __init__(self, name, type, not_null=False, prim_key=False, exist_table=False, table_name=None, schema=None):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class Column')
 
         self.name = name
         self.type = type
@@ -191,6 +202,8 @@ class DBCreator(DBConnector):
 
     """
     def __init__(self):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class DBCreator')
 
         # init connector base class
         super().__init__()
@@ -246,10 +259,3 @@ class DBCreator(DBConnector):
         else:
             raise DBCreatorError("Creation of column object is only possible in existing tables")
 
-
-if __name__ == '__main__':
-
-    creator = DBCreator()
-    creator.connect(username="christian", password="", host="192.168.178.37", port="5432", dbname="")
-    print(Table("communityuser2", Column(name="id", type="bigint", prim_key=True), Column(name="username", type="text"), Column(name="community", type="text"), Column(name="points", type="integer"), Column(name="teamvalue", type="bigint"), schema="comunio"))
-    creator.build(obj=Table("communityuser2", Column(name="id", type="bigint", prim_key=True), Column(name="username", type="text"), Column(name="community", type="text"), Column(name="points", type="integer"), Column(name="teamvalue", type="bigint"), schema="comunio"))

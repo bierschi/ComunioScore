@@ -1,3 +1,4 @@
+import logging
 from flask import Flask
 
 
@@ -11,6 +12,9 @@ class Router:
     """
 
     def __init__(self, name):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class Router')
+
         self.name = name
         self.app = Flask(self.name)
 

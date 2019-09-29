@@ -1,3 +1,4 @@
+import logging
 from ComunioScore.score.sofascore import SofaScore
 
 
@@ -9,6 +10,9 @@ class BundesligaScore(SofaScore):
             buli.get_matchday_lineup()
     """
     def __init__(self, date):
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class BundesligaScore')
+
         # init base class
         super().__init__()
 
