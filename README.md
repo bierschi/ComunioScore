@@ -4,7 +4,7 @@
 - website to visualize rating, points and different statistics from your comunio players
 - messenger integration to share it with friends in groups chat
 
-##Installation
+## Installation
 
 <pre><code>
 sudo python3 setup.py release install
