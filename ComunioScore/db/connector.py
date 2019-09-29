@@ -20,7 +20,7 @@ class DBConnector:
 
     @classmethod
     def connect(cls, host, port, username, password, dbname, minConn=1, maxConn=10):
-        """ connect to ThreadedConnectionPool
+        """ connection to the ThreadedConnectionPool
 
         :param host: hostname of database
         :param port: port of database

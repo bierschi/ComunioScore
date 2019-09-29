@@ -1,7 +1,7 @@
 
 
 class CursorContextManager:
-    """ class CursorContextManager to create cursor object within a context
+    """ class CursorContextManager to create the cursor object within a context
 
     USAGE:
             CursorContextManager(pool=pool, autocommit=False)
@@ -45,7 +45,7 @@ class CursorContextManager:
 
 
 class ConnectionContextManager:
-    """ class ConnectionContextManager to create connection object within a context
+    """ class ConnectionContextManager to create the connection object within a context
 
     USAGE:
             ConnectionContextManager(pool=pool, autocommit=False)

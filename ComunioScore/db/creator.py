@@ -27,6 +27,33 @@ class Database:
         return "create database {}".format(self.name)
 
 
+class Schema:
+    """ class Schema to build a sql string for Schema creation
+
+    USAGE:
+            Schema(name="comunioscore")
+
+    """
+    def __init__(self, name):
+        self.name = name
+
+        self.sql_schema = "create schema if not exists {}".format(self.name)
+
+    def __str__(self):
+        """ string representation of schema creation
+
+        :return: sql string for schema creation
+        """
+        return self.sql_schema
+
+    def __repr__(self):
+        """ string representation of schema object
+
+        :return: sql string for schema creation
+        """
+        return self.sql_schema
+
+
 class Table:
     """ class Table to build a sql string for Table creation
 
@@ -46,7 +73,9 @@ class Table:
         else:
             self.sql_table = "create table if not exists  {}.{} ".format(self.schema, self.name)
 
-        if len(columns) == 1:
+        if len(columns) == 0:
+            self.sql_table = self.sql_table + "()"
+        elif len(columns) == 1:
             self.sql_table = self.sql_table + str(columns).replace(',', '')
         elif len(columns) > 1:
             self.sql_table = self.sql_table + str(columns)
@@ -167,29 +196,40 @@ class DBCreator(DBConnector):
         super().__init__()
 
     def build(self, obj):
-        """ build object depending on given 'obj'
+        """ build object depending on given object 'obj'
 
         """
         if isinstance(obj, Database):
             self.__database(obj)
+        elif isinstance(obj, Schema):
+            self.__schema(obj)
         elif isinstance(obj, Table):
             self.__table(obj)
         elif isinstance(obj, Column):
             self.__column(obj)
         else:
-            raise DBCreatorError("Provide either a Database, Table or Column object")
+            raise DBCreatorError("Provide either a Database, Schema, Table or Column object")
 
     def __database(self, database_obj):
         """ creates a database
 
-        :param database_obj:
+        :param database_obj: database object
         """
         with self.get_cursor(autocommit=True) as cursor:
             cursor.execute(str(database_obj))
 
+    def __schema(self, schema_obj):
+        """creates a Schema
+
+        :param schema_obj: schema object
+        """
+        with self.get_cursor() as cursor:
+            cursor.execute(str(schema_obj))
+
     def __table(self, table_obj):
         """ creates a table
 
+        :param table_obj: table object
         """
         with self.get_cursor() as cursor:
             cursor.execute(str(table_obj))
@@ -197,7 +237,7 @@ class DBCreator(DBConnector):
     def __column(self, column_obj):
         """ creates a column
 
-        :return:
+        :param column_obj: column object
         """
         # only possible in existing table
         if column_obj.exist_table:
@@ -211,6 +251,5 @@ if __name__ == '__main__':
 
     creator = DBCreator()
     creator.connect(username="christian", password="", host="192.168.178.37", port="5432", dbname="")
-    #creator.table(Table("abc", Column('did', 'text')))
-    creator.build(obj=Column(name="abc", type="text", not_null=True, prim_key=False, exist_table=True, table_name="abc"))
-    #gps_table = Table("test", "a", Column(name='did', type='int', not_null=True, prim_key=False))
+    print(Table("communityuser2", Column(name="id", type="bigint", prim_key=True), Column(name="username", type="text"), Column(name="community", type="text"), Column(name="points", type="integer"), Column(name="teamvalue", type="bigint"), schema="comunio"))
+    creator.build(obj=Table("communityuser2", Column(name="id", type="bigint", prim_key=True), Column(name="username", type="text"), Column(name="community", type="text"), Column(name="points", type="integer"), Column(name="teamvalue", type="bigint"), schema="comunio"))

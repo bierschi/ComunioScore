@@ -105,6 +105,6 @@ venv.bak/
 
 #project
 .idea/
-ComunioScore/config
+ComunioScore/config/cfg.ini
 ComunioScore/json_data
 notes.txt

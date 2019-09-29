@@ -1,10 +1,11 @@
 import configparser
 from ComunioScore.routes.router import Router
-from ComunioScore.routes.api_handler import APIHandler
+from ComunioScore.api import APIHandler
+from ComunioScore.dbagent import DBAgent
 from ComunioScore import ROOT_DIR
 
-config = configparser.ConfigParser()
-config.read(ROOT_DIR + '/config/cfg.ini')
+#config = configparser.ConfigParser()
+#config.read(ROOT_DIR + '/config/cfg.ini')
 
 
 class ComunioScore:
@@ -18,6 +19,10 @@ class ComunioScore:
         # router instance for specific endpoints
         self.router = Router(name=self.name)
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
+
+        # create instance db agent
+        dbagent = DBAgent(config_file='cfg.ini')
+        dbagent.start()
 
     def run(self, port=None, debug=None):
         """ runs the ComunioScore application on given port

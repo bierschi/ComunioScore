@@ -18,6 +18,14 @@ class DBInserter(DBConnector):
 
         pass
 
+    def sql(self, sql):
+        """ executes a sql statement
+
+        :param sql: sql statement
+        """
+        with self.get_cursor() as cursor:
+            cursor.execute(sql)
+
     def one(self):
         """
 
