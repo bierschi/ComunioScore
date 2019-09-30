@@ -9,6 +9,7 @@ class Comunio:
     USAGE:
             comunio = Comunio()
             comunio.login(username='', password='')
+            comunio.get_all_user_ids()
     """
     def __init__(self):
         self.logger = logging.getLogger('ComunioScoreApp')
@@ -32,7 +33,9 @@ class Comunio:
 
         # HTTP Header parameters
         self.session = requests.Session()
-        self.auth_token = ''                # authtoken to perform http request as a logged in user
+        self.auth_token = None                # authtoken to perform http request as a logged in user
+        self.auth_token_expires = ''
+        self.auth_info = None
         self.origin = 'http://www.comunio.de'
         self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/60.0.3112.78 Chrome/60.0.3112.78 Safari/537.36'
         self.accept_encoding = 'gzip, deflate, br'
@@ -60,24 +63,33 @@ class Comunio:
         data_login = [('username', username), ('password', password),]
 
         try:
+
             request_login = self.session.post('https://api.comunio.de/login', headers=self.headers_login, data=data_login)
-
-            if not request_login.status_code // 100 == 2:
-                error_data = json.loads(request_login.text)
-                error_text = error_data['error_description']
-                return error_text
-
-            json_data = json.loads(request_login.text)
-
-            self.auth_token = str(json_data['access_token'])
-            if self.__set_user_and_community_info() != 200:
-                self.logger.error("failed to set user and community attributes")
-                raise AttributeError("failed to set user and community attributes")
-
-            return self.auth_token
 
         except requests.exceptions.RequestException as e:
             self.logger.error("Got RequestException: {}".format(e))
+            return False
+
+        if request_login.status_code == 400:
+            error_data = json.loads(request_login.text)
+            error_text = error_data['error_description']
+            self.logger.error(error_text)
+            return False
+        elif not request_login.status_code // 100 == 2:
+            error_data = json.loads(request_login.text)
+            error_text = error_data['error_description']
+            self.logger.error(error_text)
+            return False
+
+        json_data = json.loads(request_login.text)
+        self.auth_token = str(json_data['access_token'])
+        self.auth_token_expires = str(json_data['expires_in'])
+        self.auth_info = json_data
+        if self.__set_user_and_community_info() != 200:
+            self.logger.error("failed to set user and community attributes")
+            raise AttributeError("failed to set user and community attributes")
+
+        return True
 
     def __set_user_and_community_info(self):
         """ sets user and community specific attributes
@@ -108,97 +120,125 @@ class Comunio:
 
         return request_info.status_code
 
+    def get_auth_info(self):
+        """ get the auth infos from login process
+
+        :return: auth_info as json dict
+        """
+        if self.auth_info is not None:
+            return self.auth_info
+
     def get_all_user_ids(self):
         """ get all user ids in community
 
         :return: list containing all user ids with name as dict()
         """
+        if self.auth_token is not None:
+            headers_standings = {
+                'Origin': self.origin,
+                'Accept-Encoding': self.accept_encoding,
+                'Accept-Language': 'de-DE,en-EN;q=0.9',
+                'Authorization': 'Bearer ' + self.auth_token,
+                'Accept': 'application/json, text/plain, */*',
+                'Referer': 'http://www.comunio.de/standings/total',
+                'User-Agent': self.user_agent,
+                'Connection': self.connection,
+            }
 
-        headers_standings = {
-            'Origin': self.origin,
-            'Accept-Encoding': self.accept_encoding,
-            'Accept-Language': 'de-DE,en-EN;q=0.9',
-            'Authorization': 'Bearer ' + self.auth_token,
-            'Accept': 'application/json, text/plain, */*',
-            'Referer': 'http://www.comunio.de/standings/total',
-            'User-Agent': self.user_agent,
-            'Connection': self.connection,
-        }
+            params_standings = (('period', 'season'),)
+            request_standing = requests.get('https://api.comunio.de/communities/' + self.communityid +
+                                           '/standings', headers=headers_standings, params=params_standings)
 
-        params_standings = (('period', 'season'),)
-        request_standing = requests.get('https://api.comunio.de/communities/' + self.communityid +
-                                       '/standings', headers=headers_standings, params=params_standings)
+            json_data = json.loads(request_standing.text)
 
-        json_data = json.loads(request_standing.text)
+            tempid = ''
+            # workaround to get id of object that stores all user ids
+            for id in json_data.get('items'):
+                tempid = id
+            for id in json_data['items'][tempid]['players']:
+                player_dict = dict()
+                player_dict['id'] = id['id']
+                player_dict['name'] = id['name']
+                self.userids.append(player_dict)
 
-        tempid = ''
-        # workaround to get id of object that stores all user ids
-        for id in json_data.get('items'):
-            tempid = id
-        for id in json_data['items'][tempid]['players']:
-            player_dict = dict()
-            player_dict['id'] = id['id']
-            player_dict['name'] = id['name']
-            self.userids.append(player_dict)
-
-        return self.userids
+            return self.userids
+        else:
+            pass
 
     def get_player_standings(self):
         """ get the player standings
 
         :return: list with dicts of player standings
         """
+        if self.auth_token is not None:
+            headers_standings = {
+                'Origin': self.origin,
+                'Accept-Encoding': self.accept_encoding,
+                'Accept-Language': 'de-DE,en-EN;q=0.9',
+                'Authorization': 'Bearer ' + self.auth_token,
+                'Accept': 'application/json, text/plain, */*',
+                'Referer': 'http://www.comunio.de/standings/total',
+                'User-Agent': self.user_agent,
+                'Connection': self.connection,
+            }
 
-        headers_standings = {
-            'Origin': self.origin,
-            'Accept-Encoding': self.accept_encoding,
-            'Accept-Language': 'de-DE,en-EN;q=0.9',
-            'Authorization': 'Bearer ' + self.auth_token,
-            'Accept': 'application/json, text/plain, */*',
-            'Referer': 'http://www.comunio.de/standings/total',
-            'User-Agent': self.user_agent,
-            'Connection': self.connection,
-        }
+            params_standings = (('period', 'season'),)
+            request_standing = requests.get('https://api.comunio.de/communities/' + self.communityid +
+                                           '/standings', headers=headers_standings, params=params_standings)
 
-        params_standings = (('period', 'season'),)
-        request_standing = requests.get('https://api.comunio.de/communities/' + self.communityid +
-                                       '/standings', headers=headers_standings, params=params_standings)
+            json_data = json.loads(request_standing.text)
+            tempid = ''
+            # workaround to get id of object that stores all user ids
+            for id in json_data.get('items'):
+                tempid = id
 
-        json_data = json.loads(request_standing.text)
-        tempid = ''
-        # workaround to get id of object that stores all user ids
-        for id in json_data.get('items'):
-            tempid = id
+            return json_data['items'][tempid]['players']
+        else:
+            pass
 
-        return json_data['items'][tempid]['players']
+    def set_auth_token(self, auth_token):
+        """ sets the auth token
 
-    def get_aut_token(self):
+        """
+        self.auth_token = auth_token
+
+    def get_auth_token(self):
         """ get auth token
 
         :return: auth_token as string
         """
         return self.auth_token
 
+    def get_auth_expire_time(self):
+        """
+
+        :return:
+        """
+        return self.auth_token_expires
+
     def get_user_id(self):
         """ get user id from logged in user
 
         :return: userid as int
         """
-        return self.userid
+        if self.auth_token is not None:
+            return self.userid
 
     def get_community_id(self):
         """ get community id from logged in user
 
         :return: communityid as int
         """
-        return self.communityid
+        if self.auth_token is not None:
+            return self.communityid
 
     def get_community_name(self):
         """ get community name from logged in user
 
         :return: community name as string
         """
-        return self.communityname
+        if self.auth_token is not None:
+            return self.communityname
 
     def get_wealth(self, userid):
         """ get wealth from given userid
@@ -206,23 +246,23 @@ class Comunio:
         :param userid: int number
         :return: wealth as int number
         """
+        if self.auth_token is not None:
+            headers_info = {
+                'Origin': self.origin,
+                'Accept-Encoding': self.accept_encoding,
+                'Accept-Language': 'en-EN',
+                'Authorization': 'Bearer ' + self.auth_token,
+                'Accept': 'application/json, text/plain, */*',
+                'Referer': 'http://www.comunio.de/standings/total',
+                'User-Agent': self.user_agent,
+                'Connection': self.connection,
+            }
 
-        headers_info = {
-            'Origin': self.origin,
-            'Accept-Encoding': self.accept_encoding,
-            'Accept-Language': 'en-EN',
-            'Authorization': 'Bearer ' + self.auth_token,
-            'Accept': 'application/json, text/plain, */*',
-            'Referer': 'http://www.comunio.de/standings/total',
-            'User-Agent': self.user_agent,
-            'Connection': self.connection,
-        }
+            request_info = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad-latest', headers=headers_info)
+            json_data = json.loads(request_info.text)
 
-        request_info = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad-latest', headers=headers_info)
-        json_data = json.loads(request_info.text)
-
-        wealth = int(json_data['matchday']['budget'])
-        return wealth
+            wealth = int(json_data['matchday']['budget'])
+            return wealth
 
     def get_squad(self, userid):
         """ get squad from given userid
@@ -230,21 +270,21 @@ class Comunio:
         :param userid: int number
         :return: dict containing the squad
         """
+        if self.auth_token is not None:
+            header = {
+                'Origin': self.origin,
+                'Accept-Encoding': self.accept_encoding,
+                'Accept-Language': 'en-EN',
+                'Authorization': 'Bearer ' + self.auth_token,
+                'Accept': 'application/json, text/plain, */*',
+                'User-Agent': self.user_agent,
+                'Connection': self.connection,
+            }
 
-        header = {
-            'Origin': self.origin,
-            'Accept-Encoding': self.accept_encoding,
-            'Accept-Language': 'en-EN',
-            'Authorization': 'Bearer ' + self.auth_token,
-            'Accept': 'application/json, text/plain, */*',
-            'User-Agent': self.user_agent,
-            'Connection': self.connection,
-        }
+            squad_request = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad', headers=header)
 
-        squad_request = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad', headers=header)
-
-        json_data = squad_request.json()
-        return json_data['items']
+            json_data = squad_request.json()
+            return json_data['items']
 
     def get_comunio_user_data(self):
         """ get comunio user data -> id, name, squad
@@ -268,10 +308,25 @@ class Comunio:
 
         return comunio_user_data
 
+    def test(self):
+        header = {
+            'Origin': self.origin,
+            'Accept-Encoding': self.accept_encoding,
+            'Accept-Language': 'en-EN',
+            'Authorization': 'Bearer ' + self.auth_token,
+            'Accept': 'application/json, text/plain, */*',
+            'User-Agent': self.user_agent,
+            'Connection': self.connection,
+        }
+
+        squad_request = requests.get('https://api.comunio.de/communities/2221987/users/13068277/offers', headers=header)
+        print(squad_request.json())
 
 if __name__ == '__main__':
     comunio = Comunio()
-    comunio.login(username='', password='')
-    data = comunio.get_player_standings()
-    print(data)
+    print(comunio.login(username='', password=''))
+    print(comunio.get_auth_info())
+    #comunio.get_auth_expire_time()
+    #data = comunio.get_player_standings()
+    #print(data)
 

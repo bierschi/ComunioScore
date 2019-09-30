@@ -21,12 +21,13 @@ class DBInserter(DBConnector):
 
         pass
 
-    def sql(self, sql):
+    def sql(self, sql, autocommit=False):
         """ executes a sql statement
 
         :param sql: sql statement
+        :param autocommit: bool to enable autocommit
         """
-        with self.get_cursor() as cursor:
+        with self.get_cursor(autocommit=autocommit) as cursor:
             cursor.execute(sql)
 
     def one(self):
