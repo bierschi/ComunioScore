@@ -11,6 +11,7 @@ install:
   - sudo apt-get install python3-setuptools
   # install dependencies
   - pip3 install -r requirements.txt
+  - pip3 install wheel
   # install python package
   - sudo python3 setup.py bdist_wheel
 
