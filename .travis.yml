@@ -8,6 +8,7 @@ python:
 #    - master
 
 install:
+  - sudo apt-get install python3-setuptools
   # install dependencies
   - pip3 install -r requirements.txt
   # install python package
