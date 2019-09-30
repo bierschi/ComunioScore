@@ -1,7 +1,7 @@
 import unittest
 
 
-class TestDBAgent(unittest.TestCase):
+class TestComunioScore(unittest.TestCase):
 
     def setUp(self) -> None:
         pass

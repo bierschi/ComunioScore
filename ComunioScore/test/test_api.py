@@ -1,7 +1,7 @@
 import unittest
 
 
-class TestDBAgent(unittest.TestCase):
+class TestAPIHandler(unittest.TestCase):
 
     def setUp(self) -> None:
         pass
