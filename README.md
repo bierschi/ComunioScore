@@ -7,7 +7,7 @@
 ## Installation
 
 <pre><code>
-sudo python3 setup.py release install
+sudo python3 setup.py install
 </code></pre>
 
 ## Usage

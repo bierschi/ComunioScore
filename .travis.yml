@@ -3,9 +3,15 @@ language: python
 python:
   - "3.6"   # development interpreter
 
-# install dependencies
+#branches:
+#  only:
+#    - master
+
 install:
+  # install dependencies
   - pip3 install -r requirements.txt
+  # install python package
+  - python3 setup.py install
 
 script:
   - python3 -m unittest discover ComunioScore/test/
