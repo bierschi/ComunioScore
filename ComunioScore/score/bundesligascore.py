@@ -93,5 +93,6 @@ class BundesligaScore(SofaScore):
 
 
 if __name__ == '__main__':
-    b = BundesligaScore('2019-09-21')
-    print(b.vis_matches())
+    b = BundesligaScore('2019-11-23')
+    print(b.get_matchday_lineup())
+    print(len(b.get_matchday_lineup()))

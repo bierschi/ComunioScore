@@ -308,25 +308,9 @@ class Comunio:
 
         return comunio_user_data
 
-    def test(self):
-        header = {
-            'Origin': self.origin,
-            'Accept-Encoding': self.accept_encoding,
-            'Accept-Language': 'en-EN',
-            'Authorization': 'Bearer ' + self.auth_token,
-            'Accept': 'application/json, text/plain, */*',
-            'User-Agent': self.user_agent,
-            'Connection': self.connection,
-        }
-
-        squad_request = requests.get('https://api.comunio.de/communities/2221987/users/13068277/offers', headers=header)
-        print(squad_request.json())
 
 if __name__ == '__main__':
     comunio = Comunio()
     print(comunio.login(username='', password=''))
     print(comunio.get_auth_info())
-    #comunio.get_auth_expire_time()
-    #data = comunio.get_player_standings()
-    #print(data)
 

@@ -65,11 +65,11 @@ class SofaScore:
         return self.__request_api(url=lineups_url)
 
     def get_player_stats(self, match_id, player_id):
-        """
+        """ get stats from given player and match
 
-        :param match_id:
-        :param player_id:
-        :return:
+        :param match_id: id from match
+        :param player_id: id from player
+        :return: json dict
         """
         # create correct url
         player_stats_url = self.player_stats_url.format(event_id=match_id, player_id=player_id)
@@ -78,6 +78,7 @@ class SofaScore:
 
 if __name__ == '__main__':
     sc = SofaScore()
-    print(sc.get_lineups_match(match_id=8271996))
+    print(sc.get_lineups_match(8272007))
+    print(sc.get_player_stats(match_id=8272007, player_id=190159))
     #print(sc.parse_lineups_event(event_id=8271996))
 

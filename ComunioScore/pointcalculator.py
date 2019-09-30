@@ -1,3 +1,4 @@
+import logging
 
 
 class PointCalculator:
@@ -7,7 +8,8 @@ class PointCalculator:
             calc = PointCalculator()
     """
     def __init__(self):
-        pass
+        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger.info('create class PointCalculator')
 
     @staticmethod
     def get_points_from_rating(rating):
@@ -78,10 +80,21 @@ class PointCalculator:
             return 3
 
     @staticmethod
-    def get_points_for_offs():
+    def get_points_for_offs(off_type):
+        """ get points for offs
+
+        :return: points for the off type
         """
 
-        :return:
-        """
-        pass
+        if off_type is 'yellow_red':
+            return -3
+        elif off_type is 'red':
+            return -6
 
+    @staticmethod
+    def get_penalty():
+        """ get points for penalty
+
+        :return: points for penalty
+        """
+        return 3

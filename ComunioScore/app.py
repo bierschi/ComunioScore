@@ -1,4 +1,3 @@
-import configparser
 import logging
 from ComunioScore.routes.router import Router
 from ComunioScore.api import APIHandler
