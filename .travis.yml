@@ -8,12 +8,13 @@ python:
 #    - master
 
 install:
-  - sudo apt-get install python3-setuptools
+  - apt-get install python3-setuptools
+  - pip install --upgrade pip
   # install dependencies
-  - pip3 install -r requirements.txt
-  - pip3 install wheel
+  - pip install -r requirements.txt
+  - pip install wheel
   # install python package
-  - sudo python3 setup.py bdist_wheel
+  - python setup.py bdist_wheel
 
 script:
   - python3 -m unittest discover ComunioScore/test/
