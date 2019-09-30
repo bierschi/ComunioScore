@@ -1,3 +1,4 @@
+sudo: required
 language: python
 python:
   - "3.6"   # development interpreter
@@ -6,5 +7,7 @@ python:
 install:
   - pip3 install -r requirements.txt
 
+env:
+  - foo = echo $pass
 script:
   - python3 -m unittest discover ComunioScore/test/
