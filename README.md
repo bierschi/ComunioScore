@@ -6,11 +6,31 @@
 
 ## Installation
 
+install from source with
 <pre><code>
 sudo python3 setup.py install
 </code></pre>
 
 ## Usage
+
+edit the `comunioscore.ini` file with credentials for comunio and database:
+<pre><code>
+[comunio]
+username=
+password=
+
+[database]
+host=
+port=
+username=
+password=
+dbname=
+
+[comunioscore_database]
+schema=comunioscore
+table_communityuser=communityuser
+table_squad=squad
+</code></pre>
 
 execute the command line app
 <pre><code>

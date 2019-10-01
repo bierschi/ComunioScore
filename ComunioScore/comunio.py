@@ -72,13 +72,11 @@ class Comunio:
 
         if request_login.status_code == 400:
             error_data = json.loads(request_login.text)
-            error_text = error_data['error_description']
-            self.logger.error(error_text)
+            self.logger.error(error_data)
             return False
         elif not request_login.status_code // 100 == 2:
             error_data = json.loads(request_login.text)
-            error_text = error_data['error_description']
-            self.logger.error(error_text)
+            self.logger.error(error_data)
             return False
 
         json_data = json.loads(request_login.text)
@@ -207,14 +205,16 @@ class Comunio:
 
         :return: auth_token as string
         """
-        return self.auth_token
+        if self.auth_token is not None:
+            return self.auth_token
 
     def get_auth_expire_time(self):
         """
 
         :return:
         """
-        return self.auth_token_expires
+        if self.auth_token is not None:
+            return self.auth_token_expires
 
     def get_user_id(self):
         """ get user id from logged in user
@@ -291,22 +291,26 @@ class Comunio:
 
         :return: dict with id, name, squad in list
         """
-        users = self.get_all_user_ids()
-        comunio_user_data = list()
-        for user in users:
-            user_data = user.copy()
-            squad = self.get_squad(user['id'])
-            squad_list = list()
-            for player in squad:
-                player_dict = dict()
-                player_dict['name']     = player['name']
-                player_dict['club']     = player['club']['name']
-                player_dict['position'] = player['position']
-                squad_list.append(player_dict)
-            user_data.update({'squad': squad_list})
-            comunio_user_data.append(user_data)
+        if self.auth_token is not None:
+            users = self.get_all_user_ids()
+            comunio_user_data = list()
+            for user in users:
+                user_data = user.copy()
+                squad = self.get_squad(user['id'])
+                squad_list = list()
+                for player in squad:
+                    player_dict = dict()
+                    player_dict['name']     = player['name']
+                    player_dict['club']     = player['club']['name']
+                    player_dict['position'] = player['position']
+                    squad_list.append(player_dict)
+                user_data.update({'squad': squad_list})
+                comunio_user_data.append(user_data)
 
-        return comunio_user_data
+            return comunio_user_data
+
+        else:
+            pass
 
 
 if __name__ == '__main__':
