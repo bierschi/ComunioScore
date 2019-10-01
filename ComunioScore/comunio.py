@@ -52,12 +52,19 @@ class Comunio:
             'Connection': self.connection,
         }
 
+    def __del__(self):
+        """ destructor
+
+        """
+        if self.auth_token is not None:
+            self.session.cookies.clear()
+
     def login(self, username, password):
         """ comunio login with username and password
 
         :param username: username of account
         :param password: password of account
-        :return: auth_token
+        :return: bool, if login was successful
         """
 
         data_login = [('username', username), ('password', password),]
@@ -123,7 +130,7 @@ class Comunio:
 
         :return: auth_info as json dict
         """
-        if self.auth_info is not None:
+        if self.auth_token is not None:
             return self.auth_info
 
     def get_all_user_ids(self):
@@ -209,9 +216,9 @@ class Comunio:
             return self.auth_token
 
     def get_auth_expire_time(self):
-        """
+        """ get auth token expire time
 
-        :return:
+        :return: string, auth token expire time
         """
         if self.auth_token is not None:
             return self.auth_token_expires
@@ -219,7 +226,7 @@ class Comunio:
     def get_user_id(self):
         """ get user id from logged in user
 
-        :return: userid as int
+        :return: userid as string
         """
         if self.auth_token is not None:
             return self.userid
@@ -227,7 +234,7 @@ class Comunio:
     def get_community_id(self):
         """ get community id from logged in user
 
-        :return: communityid as int
+        :return: communityid as string
         """
         if self.auth_token is not None:
             return self.communityid
@@ -268,7 +275,7 @@ class Comunio:
         """ get squad from given userid
 
         :param userid: int number
-        :return: dict containing the squad
+        :return: list, containing the squad as dict
         """
         if self.auth_token is not None:
             header = {
@@ -315,6 +322,6 @@ class Comunio:
 
 if __name__ == '__main__':
     comunio = Comunio()
-    print(comunio.login(username='', password=''))
+    print(comunio.login(username='bierschi', password='test1234'))
     print(comunio.get_auth_info())
 
