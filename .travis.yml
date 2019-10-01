@@ -1,18 +1,23 @@
 sudo: required
 language: python
 python:
+  - "3.4"
+  - "3.5"
   - "3.6"   # development interpreter
 
-#branches:
-#  only:
-#    - master
+branches:
+  only:
+    - master
 
 install:
+  # install build dependencies
   - sudo apt-get install python3-setuptools
   - pip install --upgrade pip
-  # install dependencies
-  - pip install -r requirements.txt
   - pip install wheel
+
+  #install application dependencies
+  - pip install -r requirements.txt
+
   # install python package
   - python setup.py bdist_wheel
 

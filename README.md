@@ -1,8 +1,8 @@
 ## Maps the [sofascore](https://www.sofascore.com/de/) rating to [comunio](https://www.comunio.de/home) players
-
+[![Build Status](https://travis-ci.org/bierschi/ComunioScore.png?branch=master)](https://travis-ci.org/bierschi/ComunioScore) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 - get live points from your comunio players
 - website to visualize rating, points and different statistics from your comunio players
-- messenger integration to share it with friends in groups chat
+- messenger integration to share it in groups chat with friends
 
 ## Installation
 
@@ -23,3 +23,9 @@ sudo systemctl start ComunioScoreApp.service
 </code></pre>
 
 
+## Changelog
+All changes and versioning information can be found in the [CHANGELOG](https://github.com/bierschi/ComunioScore/blob/master/CHANGELOG.rst)
+
+## License
+Copyright (c) 2019 Bierschneider Christian. See [LICENSE](https://github.com/bierschi/ComunioScore/blob/master/LICENSE)
+for details
