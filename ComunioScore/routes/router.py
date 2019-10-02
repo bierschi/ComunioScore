@@ -18,13 +18,14 @@ class Router:
         self.name = name
         self.app = Flask(self.name)
 
-    def run(self, port=None, debug=None):
+    def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the development flask server
 
+        :param host: default hostname
         :param port: the port of the webserver
         :param debug: run with debug output
         """
-        self.app.run(port=port, debug=debug)
+        self.app.run(host=host, port=port, debug=debug)
 
     def add_endpoint(self, endpoint=None, endpoint_name=None, method=None, handler=None):
         """ adds an endpoint to the application

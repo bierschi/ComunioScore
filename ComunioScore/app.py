@@ -24,14 +24,15 @@ class ComunioScore:
         dbagent = DBAgent(config_file='cfg.ini')
         dbagent.start()
 
-    def run(self, port=None, debug=None):
+    def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port
 
+        :param host: default hostname
         :param port: port for the webserver
         :param debug: debug mode true or false
         """
         self.logger.info("running application on port: {}".format(port))
-        self.router.run(port=port, debug=debug)
+        self.router.run(host=host, port=port, debug=debug)
 
 
 def main():
@@ -43,7 +44,7 @@ def main():
     cs = ComunioScore(name="ComunioScoreApp")
 
     # run the application
-    cs.run(port=6500)
+    cs.run(host='0.0.0.0', port=8086)
 
 
 if __name__ == '__main__':

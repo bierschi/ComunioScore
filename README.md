@@ -6,14 +6,14 @@
 
 ## Installation
 
-install from source with
+install package from source with
 <pre><code>
 sudo python3 setup.py install
 </code></pre>
 
 ## Usage
 
-edit the `comunioscore.ini` file with credentials for comunio and database:
+edit the `comunioscore.ini` file with credentials for comunio and postgres database:
 <pre><code>
 [comunio]
 username=
@@ -32,7 +32,7 @@ table_communityuser=communityuser
 table_squad=squad
 </code></pre>
 
-execute the command line app
+execute the console script
 <pre><code>
 ComunioScoreApp
 </code></pre>
@@ -42,6 +42,22 @@ or start the systemd service file
 sudo systemctl start ComunioScoreApp.service
 </code></pre>
 
+## Deployment on server
+
+create a wheel for server deployment
+<pre><code>
+sudo python3 setup.py bdist_wheel
+</code></pre>
+
+install wheel with
+<pre><code>
+pip3 install ComunioScore-1.0.0-py3-none-any.whl
+</code></pre>
+
+uninstall wheel with
+<pre><code>
+pip3 uninstall ComunioScore
+</code></pre>
 
 ## Changelog
 All changes and versioning information can be found in the [CHANGELOG](https://github.com/bierschi/ComunioScore/blob/master/CHANGELOG.rst)
