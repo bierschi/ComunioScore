@@ -1,12 +1,12 @@
 import threading
 import logging
 import configparser
-from time import sleep
+import datetime
+from time import sleep, time
 from ComunioScore.comunio import Comunio
 from ComunioScore.db.connector import DBConnector
 from ComunioScore.db.inserter import DBInserter
 from ComunioScore.db.creator import DBCreator, Schema, Table, Column
-from ComunioScore.utils.timer import PeriodicTimer
 from ComunioScore import ROOT_DIR
 
 
@@ -122,10 +122,15 @@ class DBAgent:
                                      Column(name="club", type="text"),
                                      schema=self.comunioscore_schema))
 
+        # create table if not exists auth
         self.logger.info("create Table auth")
         self.dbcreator.build(obj=Table("auth",
-                                       Column(name="access_token", type="text"),
+                                       Column(name="timestamp_utc", type="bigint"),
+                                       Column(name="datetime", type="text"),
                                        Column(name="expires_in", type="Integer"),
+                                       Column(name="expire_timestamp_utc", type="bigint"),
+                                       Column(name="expire_datetime", type="text"),
+                                       Column(name="access_token", type="text"),
                                        Column(name="token_type", type="text"),
                                        Column(name="refresh_token", type="text"),
                                        schema=self.comunioscore_schema))
@@ -135,9 +140,14 @@ class DBAgent:
 
         """
         self.logger.info("insert auth data into database")
+        ts_utc = int(str(time()).split('.')[0])
+        dt = str(datetime.datetime.now())
         auth = self.comunio.get_auth_info()
-        sql = "insert into {}.auth (access_token, expires_in, token_type, refresh_token) values (%s, %s, %s, %s)".format(self.comunioscore_schema)
-        self.dbinserter.row(sql=sql, data=(auth['access_token'], auth['expires_in'], auth['token_type'], auth['refresh_token']))
+        exp_ts_utc = int(str(time()).split('.')[0]) + int(auth['expires_in'])
+        exp_dt = datetime.datetime.fromtimestamp(exp_ts_utc)
+        print("{}, {}, {}".format(dt, exp_ts_utc, exp_dt))
+        sql = "insert into {}.auth (timestamp_utc, datetime, expires_in, expire_timestamp, expire_datetime, access_token, token_type, refresh_token) values (%s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
+        self.dbinserter.row(sql=sql, data=(ts_utc, dt, auth['expires_in'], exp_ts_utc, exp_dt, auth['access_token'], auth['token_type'], auth['refresh_token']))
 
     def __delete_auth(self):
         """ deletes the auth entries from database
@@ -217,6 +227,20 @@ class DBAgent:
         self.logger.info("deleting {} data from database".format(self.comunioscore_table_squad))
         sql = "truncate {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
         self.dbinserter.sql(sql=sql, autocommit=True)
+
+    def __insert_match_ids(self):
+        """
+
+        :return:
+        """
+        pass
+
+    def __delete_match_ids(self):
+        """
+
+        :return:
+        """
+        pass
 
     def __run(self):
         """ run thread for dbagent

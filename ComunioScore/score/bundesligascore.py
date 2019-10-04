@@ -78,6 +78,19 @@ class BundesligaScore(SofaScore):
 
             return self.matchday_data_list
 
+    def get_season_data(self):
+        """
+
+        :return:
+        """
+        season_id_19_20 = 23538
+        season_json = self.get_season(season_id=season_id_19_20)
+        for tournament in season_json['tournaments']:
+            for event in tournament['events']:
+                print(event)
+
+
+
     def vis_matches(self):
         """ visualizes players with player rating
 
@@ -94,5 +107,4 @@ class BundesligaScore(SofaScore):
 
 if __name__ == '__main__':
     b = BundesligaScore('2019-11-23')
-    print(b.get_matchday_lineup())
-    print(len(b.get_matchday_lineup()))
+    print(b.get_season_data())
