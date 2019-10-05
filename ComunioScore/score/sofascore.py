@@ -77,10 +77,10 @@ class SofaScore:
         return self.__request_api(url=player_stats_url)
 
     def get_season(self, season_id):
-        """
+        """ get season data from given season_id
 
-        :param season_id:
-        :return:
+        :param season_id: unique id for sofascore
+        :return: json dict
         """
         season_url = self.season_url.format(season_id=season_id)
         return self.__request_api(url=season_url)

@@ -4,6 +4,7 @@ import configparser
 import datetime
 from time import sleep, time
 from ComunioScore.comunio import Comunio
+from ComunioScore.score.bundesligascore import BundesligaScore
 from ComunioScore.db.connector import DBConnector
 from ComunioScore.db.inserter import DBInserter
 from ComunioScore.db.creator import DBCreator, Schema, Table, Column
@@ -52,6 +53,9 @@ class DBAgent:
 
         # create comunio instance
         self.comunio = Comunio()
+
+        # create BundesligaScore instance
+        self.bundesliga = BundesligaScore()
 
         # create database instances
         DBConnector.connect(host=self.db_host, port=self.db_port, username=self.db_user, password=self.db_password,
@@ -135,6 +139,18 @@ class DBAgent:
                                        Column(name="refresh_token", type="text"),
                                        schema=self.comunioscore_schema))
 
+        self.logger.info("create Table season")
+        self.dbcreator.build(obj=Table("season",
+                                       Column(name="match_day", type="Integer"),
+                                       Column(name="type", type="text"),
+                                       Column(name="match_id", type="bigint"),
+                                       Column(name="startTimestamp", type="bigint"),
+                                       Column(name="homeTeam", type="text"),
+                                       Column(name="awayTeam", type="text"),
+                                       Column(name="homeScore", type="text"),
+                                       Column(name="awayScore", type="text"),
+                                       schema=self.comunioscore_schema))
+
     def __insert_auth(self):
         """ insert comunio auth data into database
 
@@ -145,8 +161,8 @@ class DBAgent:
         auth = self.comunio.get_auth_info()
         exp_ts_utc = int(str(time()).split('.')[0]) + int(auth['expires_in'])
         exp_dt = datetime.datetime.fromtimestamp(exp_ts_utc)
-        print("{}, {}, {}".format(dt, exp_ts_utc, exp_dt))
-        sql = "insert into {}.auth (timestamp_utc, datetime, expires_in, expire_timestamp, expire_datetime, access_token, token_type, refresh_token) values (%s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
+
+        sql = "insert into {}.auth (timestamp_utc, datetime, expires_in, expire_timestamp_utc, expire_datetime, access_token, token_type, refresh_token) values (%s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
         self.dbinserter.row(sql=sql, data=(ts_utc, dt, auth['expires_in'], exp_ts_utc, exp_dt, auth['access_token'], auth['token_type'], auth['refresh_token']))
 
     def __delete_auth(self):
@@ -228,19 +244,28 @@ class DBAgent:
         sql = "truncate {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
         self.dbinserter.sql(sql=sql, autocommit=True)
 
-    def __insert_match_ids(self):
+    def __insert_season(self):
         """
 
         :return:
         """
-        pass
+        self.logger.info("insert season data into database")
+        sql = "insert into {}.season (match_day, type, match_id, startTimestamp, homeTeam, awayTeam, homeScore, awayScore) values(%s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
+        season_data = self.bundesliga.season_data()
+        season_list = list()
+        for matchday in season_data:
+            season_list.append((matchday['matchDay'], matchday['type'], matchday['matchId'], matchday['startTimestamp'], matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore']))
 
-    def __delete_match_ids(self):
+        self.dbinserter.many_rows(sql=sql, datas=season_list)
+
+    def __delete_season(self):
         """
 
         :return:
         """
-        pass
+        self.logger.info("deleting season data from database")
+        sql = "delete from {}.season".format(self.comunioscore_schema)
+        self.dbinserter.sql(sql=sql, autocommit=True)
 
     def __run(self):
         """ run thread for dbagent
@@ -257,11 +282,13 @@ class DBAgent:
         self.__delete_communityuser()
         self.__delete_squad()
         self.__delete_auth()
+        self.__delete_season()
 
         # insert comunio data into database tables
         self.__insert_communityuser()
         self.__insert_squad()
         self.__insert_auth()
+        self.__insert_season()
 
         # go into endless loop
         while self.__running:
@@ -277,6 +304,7 @@ class DBAgent:
 
 if __name__ == '__main__':
     agent = DBAgent(config_file='cfg.ini')
-    agent.start()
+    agent.insert_season()
+    #agent.start()
 
 

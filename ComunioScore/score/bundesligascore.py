@@ -6,31 +6,34 @@ class BundesligaScore(SofaScore):
     """ class BundesligaScore to retrieve statistics from  Bundesliga matches
 
     USAGE:
-            buli = BundesligaScore(date="2019-09-22)
-            buli.get_matchday_lineup()
+            buli = BundesligaScore()
+            buli.season_data()
     """
-    def __init__(self, date):
+    def __init__(self):
         self.logger = logging.getLogger('ComunioScoreApp')
         self.logger.info('create class BundesligaScore')
 
         # init base class
         super().__init__()
 
-        self.date = date
         self.tournament_name = "Bundesliga"
         self.matchday_data_list = None
+        self.season_id_19_20 = 23538  # TODO not hardcoded
 
-        self.date_data = self.get_date_data(date=self.date)
-        self.matchday_data_list = self.get_id_for_match()
-
-    def get_id_for_match(self):
+    def ids_for_matchday(self, date):
         """ get ids for all matches on given date
 
-        :return: list containing match ids, match names
+        matchday_data_list = [
+        {'id': 8272345, 'match': 'Hertha BSC - Fortuna Düsseldorf', 'homeTeam': {'name': 'Hertha BSC'}, 'awayTeam': {'name': 'Fortuna Düsseldorf'}},
+        {'id': 8272011, 'match': 'Bayer 04 Leverkusen - RB Leipzig', 'homeTeam': {'name': 'Bayer 04 Leverkusen'}, 'awayTeam': {'name': 'RB Leipzig'}}
+        ]
+
+        :return: list containing match ids, match names, homeTeam, awayTeam
         """
 
         matchday_data_list = list()
-        tournaments = self.date_data['sportItem']['tournaments']
+        date_data = self.get_date_data(date=date)
+        tournaments = date_data['sportItem']['tournaments']
         for tournament in tournaments:
             if (tournament['tournament']['name'] == self.tournament_name) and (tournament['category']['name'] == 'Germany'):
                 bundesliga_events = tournament['events']
@@ -44,59 +47,89 @@ class BundesligaScore(SofaScore):
 
         return matchday_data_list
 
-    def get_matchday_lineup(self):
-        """ get complete lineup for all matches
+    def lineup_from_match_id(self, match_id):
+        """ get lineup for given match_id
 
-        :return: matchday data list (match, name, player, player rating)
-        """
-        if self.matchday_data_list is not None:
-            for match in self.matchday_data_list:
-                lineup = self.get_lineups_match(match_id=match['id'])
-                players_home_team = lineup['homeTeam']['lineupsSorted']
-                players_away_team = lineup['awayTeam']['lineupsSorted']
-                home_lineup_list = list()
-                away_lineup_list = list()
-                for player in players_home_team:
-                    home_player_dict =  dict()
-                    home_player_dict['player_name'] = player['player']['name']
-                    try:
-                        home_player_dict['player_rating'] = player['rating']
-                    except KeyError:
-                        home_player_dict['player_rating'] = 'not_available'
-                    home_lineup_list.append(home_player_dict)
-                match['homeTeam'].update({'lineup': home_lineup_list})
+        lineup = {'homeTeam': [{'player_name': 'Rune Jarstein', 'substitue': False, 'player_rating': '6.5'},
+                               {'player_name': 'Lukas Klünter', 'substitue': False, 'player_rating': '6.5'}],
+                  'awayTeam': [{'player_name': 'Zack Steffen', 'substitute': False, 'player_rating': '5.6'},
+                               {'player_name': 'Matthias Zimmermann', 'substitute': False, 'player_rating': '6.3'}]}
 
-                for player in players_away_team:
-                    away_player_dict = dict()
-                    away_player_dict['player_name'] = player['player']['name']
-                    try:
-                        away_player_dict['player_rating'] = player['rating']
-                    except KeyError:
-                        away_player_dict['player_rating'] = 'not_available'
-                    away_lineup_list.append(away_player_dict)
-                match['awayTeam'].update({'lineup': away_lineup_list})
-
-            return self.matchday_data_list
-
-    def get_season_data(self):
+        :return: lineup dict with 'homeTeam' and 'awayTeam'
         """
 
-        :return:
+        lineup = self.get_lineups_match(match_id=match_id)
+
+        players_home_team = lineup['homeTeam']['lineupsSorted']
+        players_away_team = lineup['awayTeam']['lineupsSorted']
+        lineup_dict = dict()
+        home_lineup_list = list()
+        away_lineup_list = list()
+        for player in players_home_team:
+            home_player_dict =  dict()
+            home_player_dict['player_name'] = player['player']['name']
+            home_player_dict['substitue']   = player['substitute']
+            try:
+                home_player_dict['player_rating'] = player['rating']
+            except KeyError:
+                home_player_dict['player_rating'] = 'not_available'
+            home_lineup_list.append(home_player_dict)
+
+        for player in players_away_team:
+            away_player_dict = dict()
+            away_player_dict['player_name'] = player['player']['name']
+            away_player_dict['substitute']  = player['substitute']
+            try:
+                away_player_dict['player_rating'] = player['rating']
+            except KeyError:
+                away_player_dict['player_rating'] = 'not_available'
+            away_lineup_list.append(away_player_dict)
+
+        lineup_dict['homeTeam'] = home_lineup_list
+        lineup_dict['awayTeam'] = away_lineup_list
+
+        return lineup_dict
+
+    def season_data(self):
+        """ get season data from season id
+
+        season_list =[
+        {'matchDay': 1, 'type': 'finished', 'matchId': 8271917, 'startTimestamp': 1565980200, 'homeTeam': 'Bayern München', 'awayTeam': 'Hertha BSC', 'homeScore': 2, 'awayScore': 2},
+        {'matchDay': 1, 'type': 'finished', 'matchId': 8271911, 'startTimestamp': 1566048600, 'homeTeam': 'Bayer 04 Leverkusen', 'awayTeam': 'SC Paderborn 07', 'homeScore': 3, 'awayScore': 2},
+        {'matchDay': 1, 'type': 'finished', 'matchId': 8271912, 'startTimestamp': 1566048600, 'homeTeam': 'Freiburg', 'awayTeam': '1. FSV Mainz 05', 'homeScore': 3, 'awayScore': 0}
+        ]
+
+        :return: list with matchday infos as dicts
         """
-        season_id_19_20 = 23538
-        season_json = self.get_season(season_id=season_id_19_20)
+
+        season_list = list()
+
+        season_json = self.get_season(season_id=self.season_id_19_20)
         for tournament in season_json['tournaments']:
             for event in tournament['events']:
-                print(event)
+                season_dict = dict()
+                season_dict['matchDay']       = event['roundInfo']['round']
+                season_dict['type']           = event['status']['type']
+                season_dict['matchId']        = event['id']
+                season_dict['startTimestamp'] = event['startTimestamp']
+                season_dict['homeTeam']       = event['homeTeam']['name']
+                season_dict['awayTeam']       = event['awayTeam']['name']
+                if event['status']['type'] == 'finished':
+                    season_dict['homeScore'] = event['homeScore']['normaltime']
+                    season_dict['awayScore'] = event['awayScore']['normaltime']
+                else:
+                    season_dict['homeScore'] = '-'
+                    season_dict['awayScore'] = '-'
+                season_list.append(season_dict)
 
-
+        return season_list
 
     def vis_matches(self):
         """ visualizes players with player rating
 
         """
 
-        matchday = self.get_matchday_lineup()
+        matchday = self.lineup_from_match_id(match_id=8272345)
         for match in matchday:
             print("{} : {}".format(match['homeTeam']['name'], match['awayTeam']['name']))
             for (home_player, away_player) in zip(match['homeTeam']['lineup'], match['awayTeam']['lineup']):
@@ -106,5 +139,11 @@ class BundesligaScore(SofaScore):
 
 
 if __name__ == '__main__':
-    b = BundesligaScore('2019-11-23')
-    print(b.get_season_data())
+    b = BundesligaScore()
+    print(b.season_data())
+    #data = b.ids_for_matchday('2019-10-05')
+    #for ev in data:
+    #    print(ev['id'])
+    #    print(b.lineup_from_match_id(match_id=ev['id']))
+    #    break
+    #print(b.season_data())
