@@ -135,7 +135,6 @@ class BundesligaScore(SofaScore):
                                                      awayplayer['player_name'], awayplayer['player_rating']))
 
 
-
 if __name__ == '__main__':
     b = BundesligaScore()
     print(b.lineup_from_match_id(match_id=8272006))
