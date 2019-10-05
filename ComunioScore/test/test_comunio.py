@@ -111,8 +111,11 @@ class TestComunio(unittest.TestCase):
 
         user_id = self.comunio.get_user_id()
         wealth = self.comunio.get_wealth(userid=user_id)
-        # check if wealth is int
-        self.assertIsInstance(wealth, int, msg="wealth must be type of int")
+        # check if wealth is int (if no budget available, then wealth is None)
+        if wealth is None:
+            self.assertIsNone(wealth, msg="wealth must be of type None")
+        else:
+            self.assertIsInstance(wealth, int, msg="wealth must be type of int")
 
     def test_get_squad(self):
 
