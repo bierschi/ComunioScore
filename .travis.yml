@@ -24,8 +24,8 @@ install:
 services:
   - postgresql
 
-before_script:
-  - psql -c 'create database postgres;' -U postgres
+#before_script:
+#  - psql -c 'create database postgres;' -U postgres
 
 script:
   - python3 -m unittest discover ComunioScore/test/
