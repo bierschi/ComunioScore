@@ -20,12 +20,22 @@ install:
 
   # install python package
   - python setup.py bdist_wheel
+  -
+addons:
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
+env:
+  global:
+  - PGPORT=5433
 
-services:
-  - postgresql
+#services:
+#  - postgresql
 
 #before_script:
 #  - psql -c 'create database postgres;' -U postgres
 
 script:
-  - python3 -m unittest discover ComunioScore/test/
+  - python3 -m unittest discover ComunioScore/test/ -v
