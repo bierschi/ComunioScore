@@ -142,9 +142,10 @@ class DBAgent:
         self.logger.info("create Table season")
         self.dbcreator.build(obj=Table("season",
                                        Column(name="match_day", type="Integer"),
-                                       Column(name="type", type="text"),
+                                       Column(name="match_type", type="text"),
                                        Column(name="match_id", type="bigint"),
-                                       Column(name="startTimestamp", type="bigint"),
+                                       Column(name="start_timestamp", type="bigint"),
+                                       Column(name="start_datetime", type="text"),
                                        Column(name="homeTeam", type="text"),
                                        Column(name="awayTeam", type="text"),
                                        Column(name="homeScore", type="text"),
@@ -250,11 +251,13 @@ class DBAgent:
         :return:
         """
         self.logger.info("insert season data into database")
-        sql = "insert into {}.season (match_day, type, match_id, startTimestamp, homeTeam, awayTeam, homeScore, awayScore) values(%s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
+        sql = "insert into {}.season (match_day, match_type, match_id, start_timestamp, start_datetime, homeTeam, awayTeam, homeScore, awayScore) values(%s, %s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
         season_data = self.bundesliga.season_data()
         season_list = list()
+
         for matchday in season_data:
-            season_list.append((matchday['matchDay'], matchday['type'], matchday['matchId'], matchday['startTimestamp'], matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore']))
+            start_dt = datetime.datetime.fromtimestamp(matchday['startTimestamp'])
+            season_list.append((matchday['matchDay'], matchday['type'], matchday['matchId'], matchday['startTimestamp'], start_dt,matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore']))
 
         self.dbinserter.many_rows(sql=sql, datas=season_list)
 

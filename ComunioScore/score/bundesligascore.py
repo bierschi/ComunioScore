@@ -124,23 +124,22 @@ class BundesligaScore(SofaScore):
 
         return season_list
 
-    def vis_matches(self):
+    def vis_lineup_with_rating(self):
         """ visualizes players with player rating
 
         """
 
-        matchday = self.lineup_from_match_id(match_id=8272345)
-        for match in matchday:
-            print("{} : {}".format(match['homeTeam']['name'], match['awayTeam']['name']))
-            for (home_player, away_player) in zip(match['homeTeam']['lineup'], match['awayTeam']['lineup']):
-                print("{}   {}   ------  {}   {}".format(home_player['player_name'], home_player['player_rating'],
-                                                         away_player['player_name'], away_player['player_rating']))
-            print("\n")
+        lineup = self.lineup_from_match_id(match_id=8272006)
+        for (homeplayer, awayplayer) in zip(lineup['homeTeam'], lineup['awayTeam']):
+            print("{}({}) :  {}({})".format(homeplayer['player_name'], homeplayer['player_rating'],
+                                                     awayplayer['player_name'], awayplayer['player_rating']))
+
 
 
 if __name__ == '__main__':
     b = BundesligaScore()
-    print(b.season_data())
+    print(b.lineup_from_match_id(match_id=8272006))
+    b.vis_lineup_with_rating()
     #data = b.ids_for_matchday('2019-10-05')
     #for ev in data:
     #    print(ev['id'])
