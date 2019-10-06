@@ -20,7 +20,8 @@ install:
 
   # install python package
   - python setup.py bdist_wheel
-  -
+
+# use postgresql version 10
 addons:
   postgresql: "10"
   apt:
@@ -37,5 +38,6 @@ env:
 #before_script:
 #  - psql -c 'create database postgres;' -U postgres
 
+# test cases with verbose output
 script:
   - python3 -m unittest discover ComunioScore/test/ -v
