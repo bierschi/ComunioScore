@@ -10,8 +10,7 @@ class TestDBFetcher(unittest.TestCase):
     def setUp(self) -> None:
 
         # set up DBConnector instance
-
-        DBConnector().connect(host="127.0.0.1", port=5432, username="postgres", password="", dbname="postgres")
+        DBConnector().connect(host="127.0.0.1", port=5432, username="postgres", password="postgres", dbname="postgres")
         self.fetcher = DBFetcher()
         self.inserter = DBInserter()
         self.creator = DBCreator()
@@ -25,18 +24,31 @@ class TestDBFetcher(unittest.TestCase):
 
         sql = "select * from test"
         one_row = self.fetcher.one(sql=sql)
+        
         self.assertIsInstance(one_row, tuple, msg="one row must be of type tuple")
         self.assertEqual(one_row[0], 0, msg="first element in one_row must be 0")
         self.assertEqual(one_row[1], 'abc', msg="second element in one_row must be 'abc'")
 
     def test_many(self):
-        pass
+
+        sql = "select * from test"
+        rows = self.fetcher.many(sql=sql, size=2)
+
+        self.assertIsInstance(rows, list, msg="rows must be of type tuple")
+        self.assertEqual(len(rows), 2, msg="rows must be of length 2")
 
     def test_all(self):
-        pass
+
+        sql = "select * from test"
+        all = self.fetcher.all(sql=sql)
+
+        self.assertIsInstance(all, list, msg="rows must be of type tuple")
+        self.assertEqual(len(all), 3, msg="rows must be of length 2")
 
     def tearDown(self) -> None:
-        pass
+
+        sql = "delete from test"
+        self.inserter.sql(sql=sql)
 
 
 if __name__ == '__main__':
