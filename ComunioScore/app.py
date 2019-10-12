@@ -1,7 +1,7 @@
 import logging
 from ComunioScore.routes.router import Router
 from ComunioScore.api import APIHandler
-from ComunioScore.dbagent import DBAgent
+from ComunioScore.restdb import RestDB
 from ComunioScore.utils.logger import Logger
 
 
@@ -21,8 +21,8 @@ class ComunioScore:
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
         # create instance db agent
-        dbagent = DBAgent(config_file='cfg.ini')
-        dbagent.start()
+        restdb = RestDB(config_file='cfg.ini')
+        restdb.start()
 
     def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port
@@ -37,7 +37,7 @@ class ComunioScore:
 
 def main():
     # set up logger instance
-    logger = Logger(name='ComunioScoreApp', level='info', log_folder='var/log/', debug=True)
+    logger = Logger(name='ComunioScoreApp', level='info', log_folder='/var/log/', debug=False)
     logger.info("start application ComunioScoreApp")
 
     # create application instance
