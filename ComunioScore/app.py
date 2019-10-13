@@ -37,7 +37,7 @@ class ComunioScore:
 
 def main():
     # set up logger instance
-    logger = Logger(name='ComunioScoreApp', level='info', log_folder='/var/log/', debug=False)
+    logger = Logger(name='ComunioScoreApp', level='info', log_folder='/var/log/', debug=True)
     logger.info("start application ComunioScoreApp")
 
     # create application instance
