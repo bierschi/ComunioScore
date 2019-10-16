@@ -3,6 +3,7 @@ from ComunioScore.routes.router import Router
 from ComunioScore.api import APIHandler
 from ComunioScore.restdb import RestDB
 from ComunioScore.utils.logger import Logger
+from ComunioScore.livedata import LiveDataProvider
 
 
 class ComunioScore:
@@ -24,6 +25,10 @@ class ComunioScore:
         restdb = RestDB(config_file='cfg.ini')
         restdb.start()
 
+        # provide livedata
+        live = LiveDataProvider()
+        live.start()
+
     def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port
 
@@ -37,7 +42,7 @@ class ComunioScore:
 
 def main():
     # set up logger instance
-    logger = Logger(name='ComunioScoreApp', level='info', log_folder='/var/log/', debug=False)
+    logger = Logger(name='ComunioScoreApp', level='info', log_folder='/var/log/', debug=True)
     logger.info("start application ComunioScoreApp")
 
     # create application instance

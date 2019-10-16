@@ -7,7 +7,7 @@ from ComunioScore import ROOT_DIR
 
 
 class DBAgent:
-    """ Base class DBAgent for specific database actions
+    """ Base class DBAgent which provides database actions for subclasses
 
     USAGE:
             dbagent = DBAgent()
@@ -25,16 +25,18 @@ class DBAgent:
         self.config.read(ROOT_DIR + '/config/' + config_file)
         try:
             # check if keys are readable
-            self.comunioscore_schema = self.config.get('comunioscore_database', 'schema')
+            self.comunioscore_schema = self.config.get('comunioscore', 'schema')
         except (KeyError, configparser.NoSectionError) as e:
             self.logger.error("failed to load config file. Try to use absolute path: {}".format(e))
             # if Keyerror occurs, check for absolute path
             self.config = configparser.ConfigParser()
             self.config.read(config_file)
-            self.comunioscore_schema = self.config.get('comunioscore_database', 'schema')
+            self.comunioscore_schema = self.config.get('comunioscore', 'schema')
 
-        self.comunioscore_table_communityuser = self.config.get('comunioscore_database', 'table_communityuser')
-        self.comunioscore_table_squad = self.config.get('comunioscore_database', 'table_squad')
+        self.comunioscore_table_auth = self.config.get('comunioscore', 'table_auth')
+        self.comunioscore_table_communityuser = self.config.get('comunioscore', 'table_communityuser')
+        self.comunioscore_table_squad = self.config.get('comunioscore', 'table_squad')
+        self.comunioscore_table_season = self.config.get('comunioscore', 'table_season')
 
         # get database configs
         self.db_host     = self.config.get('database', 'host')
@@ -60,6 +62,19 @@ class DBAgent:
         self.logger.info("create Schema {}".format(self.comunioscore_schema))
         self.dbcreator.build(obj=Schema(name=self.comunioscore_schema))
 
+        # create table if not exists auth
+        self.logger.info("create Table {}".format(self.comunioscore_table_auth))
+        self.dbcreator.build(obj=Table(self.comunioscore_table_auth,
+                                       Column(name="timestamp_utc", type="bigint"),
+                                       Column(name="datetime", type="text"),
+                                       Column(name="expires_in", type="Integer"),
+                                       Column(name="expire_timestamp_utc", type="bigint"),
+                                       Column(name="expire_datetime", type="text"),
+                                       Column(name="access_token", type="text"),
+                                       Column(name="token_type", type="text"),
+                                       Column(name="refresh_token", type="text"),
+                                       schema=self.comunioscore_schema))
+
         # create table if not exists communityuser
         self.logger.info("create Table {}".format(self.comunioscore_table_communityuser))
         self.dbcreator.build(obj=Table(self.comunioscore_table_communityuser,
@@ -80,21 +95,8 @@ class DBAgent:
                                      Column(name="club", type="text"),
                                      schema=self.comunioscore_schema))
 
-        # create table if not exists auth
-        self.logger.info("create Table auth")
-        self.dbcreator.build(obj=Table("auth",
-                                       Column(name="timestamp_utc", type="bigint"),
-                                       Column(name="datetime", type="text"),
-                                       Column(name="expires_in", type="Integer"),
-                                       Column(name="expire_timestamp_utc", type="bigint"),
-                                       Column(name="expire_datetime", type="text"),
-                                       Column(name="access_token", type="text"),
-                                       Column(name="token_type", type="text"),
-                                       Column(name="refresh_token", type="text"),
-                                       schema=self.comunioscore_schema))
-
-        self.logger.info("create Table season")
-        self.dbcreator.build(obj=Table("season",
+        self.logger.info("create Table {}".format(self.comunioscore_table_season))
+        self.dbcreator.build(obj=Table(self.comunioscore_table_season,
                                        Column(name="match_day", type="Integer"),
                                        Column(name="match_type", type="text"),
                                        Column(name="match_id", type="bigint"),

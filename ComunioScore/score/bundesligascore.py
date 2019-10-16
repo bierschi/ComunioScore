@@ -124,12 +124,28 @@ class BundesligaScore(SofaScore):
 
         return season_list
 
-    def vis_lineup_with_rating(self):
+    def is_finished(self, matchid):
+        """ checks if a match has finished
+
+        :return: bool, true or false
+        """
+        events = self.get_match_data(match_id=matchid)
+        if 'event' in events:
+            status = events['event']['status']['type']
+            if status == 'finished':
+                return True
+            else:
+                return False
+        else:
+            self.logger.error("no 'event' in self.get_match_data")
+
+    def vis_lineup_with_rating(self, matchid):
         """ visualizes players with player rating
 
         """
 
-        lineup = self.lineup_from_match_id(match_id=8272006)
+        lineup = self.lineup_from_match_id(match_id=matchid)
+        #print(lineup)
         for (homeplayer, awayplayer) in zip(lineup['homeTeam'], lineup['awayTeam']):
             print("{}({}) :  {}({})".format(homeplayer['player_name'], homeplayer['player_rating'],
                                                      awayplayer['player_name'], awayplayer['player_rating']))
@@ -137,11 +153,6 @@ class BundesligaScore(SofaScore):
 
 if __name__ == '__main__':
     b = BundesligaScore()
-    print(b.lineup_from_match_id(match_id=8272006))
-    b.vis_lineup_with_rating()
-    #data = b.ids_for_matchday('2019-10-05')
-    #for ev in data:
-    #    print(ev['id'])
-    #    print(b.lineup_from_match_id(match_id=ev['id']))
-    #    break
-    #print(b.season_data())
+    #print(b.lineup_from_match_id(match_id=8272006))
+    #b.vis_lineup_with_rating(8272006)
+    print(b.is_finished(8272006))
