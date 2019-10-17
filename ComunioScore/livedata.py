@@ -64,11 +64,12 @@ class LiveDataProvider(DBAgent):
 
         sql = "select * from comunioscore.season where match_type='notstarted' order by start_timestamp asc"
         matches = self.dbfetcher.many(sql=sql, size=9)
-        i=0
+        #i=0
         for match in matches:
-            t = time.time() + i
-            self.scheduler.register_events(t, self.execute, 1, match[0], match[2], match[5], match[6])
-            i=i+3
+            #t = time.time() + i
+            self.logger.info("register match {}".format(match[2]))
+            self.scheduler.register_events(match[3], self.execute, 1, match[0], match[2], match[5], match[6])
+            #i=i+3
 
     def execute(self, matchday, matchid, hometeam, awayteam):
         """ executes the match event
@@ -88,7 +89,7 @@ class LiveDataProvider(DBAgent):
             self.trigger_matches()
             while not self.scheduler.is_queue_empty():
                 self.scheduler.run(blocking=False)
-            time.sleep(300)  # wait 5 minutes to trigger the next match events
+            time.sleep(600)  # wait 10 minutes to trigger the next match events
 
 
 class LiveDataFetcher(BundesligaScore, threading.Thread):
@@ -117,9 +118,9 @@ class LiveDataFetcher(BundesligaScore, threading.Thread):
             #print(lineup)
             self.logger.info("visualize lineup with rating")
             self.vis_lineup_with_rating(matchid=self.matchid)
-            time.sleep(600)  # wait 10 minutes
+            time.sleep(300)  # wait 10 minutes
 
-        print("finish thread with matchid: {}".format(self.matchid))
+        print("finished thread with matchid: {}".format(self.matchid))
 
 
 if __name__ == '__main__':
