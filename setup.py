@@ -1,5 +1,7 @@
+import os
+import subprocess
 from setuptools import setup, find_packages
-
+from setuptools.command.install import install
 from ComunioScore import __version__, __author__, __email__, __license__
 
 with open('requirements.txt') as f:
@@ -10,6 +12,17 @@ with open("README.md", encoding='utf-8') as f:
 
 with open("CHANGELOG.rst") as f:
     changelog = f.read()
+
+
+class CustomInstallCommand(install):
+
+    def run(self):
+        install.run(self)
+        current_dir_path = os.path.dirname(os.path.realpath(__file__))
+        service_path = os.path.join(current_dir_path, 'service', 'ComunioScoreService.sh')
+        print(service_path)
+        subprocess.check_output([service_path])
+
 
 setup(
     name="ComunioScore",
@@ -47,4 +60,7 @@ setup(
         ],
     },
     zip_safe=False,
+    #cmdclass={
+    #    'install': CustomInstallCommand
+    #},
 )
