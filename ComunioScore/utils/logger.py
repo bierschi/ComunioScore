@@ -11,7 +11,7 @@ class Logger:
     """
     __instance = None
 
-    def __init__(self, name='CommunioScoreApp', level='info', log_folder='/var/log', log_file_size=10000000, debug=False):
+    def __init__(self, name='CommunioScoreApp', level='info', log_folder='/var/log/bierschi', log_file_size=10000000):
 
         if Logger.__instance is not None:
             raise Exception("This class is a singleton!")
@@ -37,36 +37,24 @@ class Logger:
             self.level = logging.INFO
 
         self.logger.setLevel(self.level)
-        formatter = logging.Formatter('%(asctime)s - %(lineno)d@%(filename)s - %(levelname)s: %(message)s')
+        self.formatter = logging.Formatter('%(asctime)s - %(lineno)d@%(filename)s - %(levelname)s: %(message)s')
 
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(self.level)
-        stream_handler.setFormatter(formatter)
+        self.local_log = ROOT_DIR + '/logs'
 
-        if not debug:
-            self.__create_log_folder(log_folder)
-            info_log_file_path = log_folder + '/ComunioScoreApp/info.log'
-            error_log_file_path = log_folder + '/ComunioScoreApp/error.log'
+        if self.__create_log_folder(log_folder):
+
+            info_log_file_path = log_folder + '/ComunioScore/info.log'
+            error_log_file_path = log_folder + '/ComunioScore/error.log'
+            self.set_up_handler(log_file_size, info_log_file_path, error_log_file_path)
+
+        elif self.__create_log_folder(self.local_log):
+
+            info_log_file_path = self.local_log + '/ComunioScore/info.log'
+            error_log_file_path = self.local_log + '/ComunioScore/error.log'
+            self.set_up_handler(log_file_size, info_log_file_path, error_log_file_path)
+
         else:
-            if not os.path.exists(ROOT_DIR + '/logs'):
-                os.mkdir(ROOT_DIR + '/logs')
-            info_log_file_path = ROOT_DIR + '/logs/info.log'
-            error_log_file_path = ROOT_DIR + '/logs/error.log'
-
-        if isinstance(log_file_size, int):
-            info_rotate_handler = RotatingFileHandler(info_log_file_path, mode='a', maxBytes=log_file_size, backupCount=10)  # 10mb
-            info_rotate_handler.setFormatter(formatter)
-            info_rotate_handler.setLevel(logging.DEBUG)  # fixed level
-
-            error_rotate_handler = RotatingFileHandler(error_log_file_path, mode='a', maxBytes=log_file_size, backupCount=10)  # 10mb
-            error_rotate_handler.setFormatter(formatter)
-            error_rotate_handler.setLevel(logging.WARNING)  # fixed level
-        else:
-            raise TypeError("'log_file_size must be type of int!")
-
-        self.logger.addHandler(stream_handler)
-        self.logger.addHandler(info_rotate_handler)
-        self.logger.addHandler(error_rotate_handler)
+            print("could not create a logger instance")
 
     @staticmethod
     def get_instance():
@@ -79,21 +67,51 @@ class Logger:
         return Logger.__instance
 
     def __create_log_folder(self, log_folder):
-        """creates log folder in '/var/log/ComunioScoreApp'
+        """creates log folder in '/var/log/bierschi/ComunioScoreApp'
 
         """
         try:
-
             if log_folder.endswith('/'):
-                if not os.path.exists(log_folder + 'ComunioScoreApp'):
-                    os.mkdir(log_folder + 'ComunioScoreApp')
+                if not os.path.exists(log_folder):
+                    os.mkdir(log_folder)
+                if not os.path.exists(log_folder + 'ComunioScore'):
+                    os.mkdir(log_folder + 'ComunioScore')
+                    return True
+                else:
+                    return True
             else:
-                if not os.path.exists(log_folder + '/ComunioScoreApp'):
-                    os.mkdir(log_folder + '/ComunioScoreApp')
+                if not os.path.exists(log_folder):
+                    os.mkdir(log_folder)
+                if not os.path.exists(log_folder + '/ComunioScore'):
+                    os.mkdir(log_folder + '/ComunioScore')
+                    return True
+                else:
+                    return True
 
         except PermissionError as ex:
-            print("Check permission! Exception: " + str(ex))
-            exit(0)
+            print("Check permission for folder {}! Exception: {}".format(log_folder, ex))
+            return False
+
+    def set_up_handler(self, log_file_size, info_log_file_path, error_log_file_path):
+        """
+
+        :return:
+        """
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(self.level)
+        stream_handler.setFormatter(self.formatter)
+
+        info_rotate_handler = RotatingFileHandler(info_log_file_path, mode='a', maxBytes=log_file_size, backupCount=10)  # 10mb
+        info_rotate_handler.setFormatter(self.formatter)
+        info_rotate_handler.setLevel(logging.DEBUG)  # fixed level
+
+        error_rotate_handler = RotatingFileHandler(error_log_file_path, mode='a', maxBytes=log_file_size, backupCount=10)  # 10mb
+        error_rotate_handler.setFormatter(self.formatter)
+        error_rotate_handler.setLevel(logging.WARNING)  # fixed level
+
+        self.logger.addHandler(stream_handler)
+        self.logger.addHandler(info_rotate_handler)
+        self.logger.addHandler(error_rotate_handler)
 
     def info(self, msg):
         """logs info messages
@@ -125,7 +143,7 @@ class Logger:
 
 
 if __name__ == '__main__':
-    logger = Logger(debug=False)
+    logger = Logger()
     for i in range(0, 1000):
         logger.info("test_message")
         logger.error("test_error")

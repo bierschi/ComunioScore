@@ -21,6 +21,7 @@ setup(
     author_email=__email__,
     url="https://github.com/bierschi/ComunioScore",
     packages=find_packages(),
+    include_package_data=True,
     data_files=[
         ('/etc/systemd/system', ['service/ComunioScoreApp.service'])
     ],
