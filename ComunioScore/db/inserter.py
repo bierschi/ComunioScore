@@ -13,7 +13,7 @@ class DBInserter(DBConnector):
 
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class DBInserter')
 
         # init connector base class

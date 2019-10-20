@@ -7,11 +7,11 @@ from ComunioScore import ROOT_DIR
 class Logger:
     """Singleton class Logger to set up a Logger instance
     USAGE:
-            Logger(name='ComunioScoreApp)
+            Logger(name='ComunioScore')
     """
     __instance = None
 
-    def __init__(self, name='CommunioScoreApp', level='info', log_folder='/var/log/bierschi', log_file_size=10000000):
+    def __init__(self, name='CommunioScore', level='info', log_folder='/var/log/bierschi', log_file_size=10000000):
 
         if Logger.__instance is not None:
             raise Exception("This class is a singleton!")
@@ -43,14 +43,14 @@ class Logger:
 
         if self.__create_log_folder(log_folder):
 
-            info_log_file_path = log_folder + '/ComunioScore/info.log'
-            error_log_file_path = log_folder + '/ComunioScore/error.log'
+            info_log_file_path = log_folder + '/' + self.logger_name + '/info.log'
+            error_log_file_path = log_folder + '/' + self.logger_name + '/error.log'
             self.set_up_handler(log_file_size, info_log_file_path, error_log_file_path)
 
         elif self.__create_log_folder(self.local_log):
 
-            info_log_file_path = self.local_log + '/ComunioScore/info.log'
-            error_log_file_path = self.local_log + '/ComunioScore/error.log'
+            info_log_file_path = self.local_log + '/' + self.logger_name + '/info.log'
+            error_log_file_path = self.local_log + '/' + self.logger_name + 'error.log'
             self.set_up_handler(log_file_size, info_log_file_path, error_log_file_path)
 
         else:
@@ -69,21 +69,22 @@ class Logger:
     def __create_log_folder(self, log_folder):
         """creates log folder in '/var/log/bierschi/ComunioScoreApp'
 
+        :return bool, True if log folder was successfully created
         """
         try:
             if log_folder.endswith('/'):
                 if not os.path.exists(log_folder):
                     os.mkdir(log_folder)
-                if not os.path.exists(log_folder + 'ComunioScore'):
-                    os.mkdir(log_folder + 'ComunioScore')
+                if not os.path.exists(log_folder + self.logger_name):
+                    os.mkdir(log_folder + self.logger_name)
                     return True
                 else:
                     return True
             else:
                 if not os.path.exists(log_folder):
                     os.mkdir(log_folder)
-                if not os.path.exists(log_folder + '/ComunioScore'):
-                    os.mkdir(log_folder + '/ComunioScore')
+                if not os.path.exists(log_folder + '/' + self.logger_name):
+                    os.mkdir(log_folder + '/' + self.logger_name)
                     return True
                 else:
                     return True
@@ -93,9 +94,8 @@ class Logger:
             return False
 
     def set_up_handler(self, log_file_size, info_log_file_path, error_log_file_path):
-        """
+        """ sets up the logger handler
 
-        :return:
         """
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(self.level)

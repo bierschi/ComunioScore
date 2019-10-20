@@ -6,7 +6,7 @@ import functools
 class PeriodicTimer:
 
     def __init__(self, interval, callback):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class PeriodicTimer')
 
         self.interval = interval

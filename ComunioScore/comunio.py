@@ -12,7 +12,7 @@ class Comunio:
             comunio.get_all_user_ids()
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class Comunio')
 
         # user

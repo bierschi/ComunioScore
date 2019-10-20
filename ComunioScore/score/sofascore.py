@@ -11,7 +11,7 @@ class SofaScore:
 
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class SofaScore')
 
         # urls to retrieve specific data

@@ -12,7 +12,7 @@ class MatchScheduler:
 
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class MatchScheduler')
 
         # create scheduler
