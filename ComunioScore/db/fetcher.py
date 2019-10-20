@@ -12,7 +12,7 @@ class DBFetcher(DBConnector):
 
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class DBFetcher')
 
         # init connector base class

@@ -16,7 +16,7 @@ class LiveDataProvider(DBAgent):
 
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class LiveDataProvider')
         # init base class
         super().__init__(config_file='cfg.ini')

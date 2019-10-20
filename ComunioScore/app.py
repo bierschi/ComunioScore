@@ -10,7 +10,7 @@ from ComunioScore.livedata import LiveDataProvider
 class ComunioScore:
 
     def __init__(self, name):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class ComunioScore')
 
         self.name = name
@@ -24,11 +24,11 @@ class ComunioScore:
 
         # create instance db agent
         restdb = RestDB(config_file='cfg.ini')
-        restdb.start()
+        #restdb.start()
 
         # provide livedata
         live = LiveDataProvider()
-        live.start()
+        #live.start()
 
     def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port
@@ -66,7 +66,7 @@ def main():
         log_folder = args.log_folder
 
     # set up logger instance
-    logger = Logger(name='ComunioScoreApp', level='info', log_folder=log_folder)
+    logger = Logger(name='ComunioScore', level='info', log_folder=log_folder)
     logger.info("start application ComunioScoreApp")
 
     # create application instance

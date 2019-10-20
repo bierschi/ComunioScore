@@ -12,7 +12,7 @@ class Router:
     """
 
     def __init__(self, name):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class Router')
 
         self.name = name

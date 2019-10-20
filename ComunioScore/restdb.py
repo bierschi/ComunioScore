@@ -17,7 +17,7 @@ class RestDB(DBAgent):
 
     """
     def __init__(self, config_file):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class RestDB')
 
         # init base class

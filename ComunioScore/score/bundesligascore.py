@@ -10,7 +10,7 @@ class BundesligaScore(SofaScore):
             buli.season_data()
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class BundesligaScore')
 
         # init base class
