@@ -26,10 +26,15 @@ username=
 password=
 dbname=
 
-[comunioscore_database]
+[comunioscore]
 schema=comunioscore
+table_auth=auth
 table_communityuser=communityuser
 table_squad=squad
+table_season=season
+
+[telegram]
+token=
 </code></pre>
 
 execute the console script
@@ -58,6 +63,14 @@ uninstall wheel with
 <pre><code>
 pip3 uninstall ComunioScore
 </code></pre>
+
+## Troubleshooting
+add your current user to group `syslog`, this allows the application to create a folder in
+`/var/log`. Replace `<user>` with your current user
+<pre><code>
+sudo adduser &lt;user&gt; syslog
+</code></pre>
+to apply this change, log out and log in again and check with the command `groups`
 
 ## Changelog
 All changes and versioning information can be found in the [CHANGELOG](https://github.com/bierschi/ComunioScore/blob/master/CHANGELOG.rst)
