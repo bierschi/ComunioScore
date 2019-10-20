@@ -2,5 +2,7 @@ include requirements.txt
 include LICENSE
 include CHANGELOG.rst
 include README.md
+include service/ComunioScoreApp.service
+include service/ComunioScoreService.sh
 include ComunioScore/config/*.ini
 include MANIFEST.in
