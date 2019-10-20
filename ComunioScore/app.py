@@ -24,11 +24,11 @@ class ComunioScore:
 
         # create instance db agent
         restdb = RestDB(config_file='cfg.ini')
-        #restdb.start()
+        restdb.start()
 
         # provide livedata
         live = LiveDataProvider()
-        #live.start()
+        live.start()
 
     def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port
