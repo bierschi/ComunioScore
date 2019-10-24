@@ -70,9 +70,3 @@ class DBInserter(DBConnector):
             raise DBInserterError("'datas' must be type of list")
 
 
-if __name__ == '__main__':
-    inserter = DBInserter()
-    inserter.connect(host="192.168.178.37", port=5432, username="", password="", dbname="test")
-    sql="INSERT INTO comunio (username, id, wealth) VALUES (%s, %s, %s)"
-    inserter.many_rows(sql, datas=[("abcdef", 13, 353.23)], autocommit=False)
-

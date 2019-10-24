@@ -11,7 +11,7 @@ class Logger:
     """
     __instance = None
 
-    def __init__(self, name='CommunioScore', level='info', log_folder='/var/log/bierschi', log_file_size=10000000):
+    def __init__(self, name='CommunioScore', level='info', log_folder='/var/log/', log_max_bytes=10000000, backup=5):
 
         if Logger.__instance is not None:
             raise Exception("This class is a singleton!")
@@ -45,13 +45,13 @@ class Logger:
 
             info_log_file_path = log_folder + '/' + self.logger_name + '/info.log'
             error_log_file_path = log_folder + '/' + self.logger_name + '/error.log'
-            self.set_up_handler(log_file_size, info_log_file_path, error_log_file_path)
+            self.set_up_handler(log_max_bytes, info_log_file_path, error_log_file_path, backup)
 
         elif self.__create_log_folder(self.local_log):
 
             info_log_file_path = self.local_log + '/' + self.logger_name + '/info.log'
             error_log_file_path = self.local_log + '/' + self.logger_name + 'error.log'
-            self.set_up_handler(log_file_size, info_log_file_path, error_log_file_path)
+            self.set_up_handler(log_max_bytes, info_log_file_path, error_log_file_path, backup)
 
         else:
             print("could not create a logger instance")
@@ -93,7 +93,7 @@ class Logger:
             print("Check permission for folder {}! Exception: {}".format(log_folder, ex))
             return False
 
-    def set_up_handler(self, log_file_size, info_log_file_path, error_log_file_path):
+    def set_up_handler(self, log_file_size, info_log_file_path, error_log_file_path, backup):
         """ sets up the logger handler
 
         """
@@ -101,11 +101,11 @@ class Logger:
         stream_handler.setLevel(self.level)
         stream_handler.setFormatter(self.formatter)
 
-        info_rotate_handler = RotatingFileHandler(info_log_file_path, mode='a', maxBytes=log_file_size, backupCount=10)  # 10mb
+        info_rotate_handler = RotatingFileHandler(info_log_file_path, mode='a', maxBytes=log_file_size, backupCount=backup)  # 10mb
         info_rotate_handler.setFormatter(self.formatter)
         info_rotate_handler.setLevel(logging.DEBUG)  # fixed level
 
-        error_rotate_handler = RotatingFileHandler(error_log_file_path, mode='a', maxBytes=log_file_size, backupCount=10)  # 10mb
+        error_rotate_handler = RotatingFileHandler(error_log_file_path, mode='a', maxBytes=log_file_size, backupCount=backup)  # 10mb
         error_rotate_handler.setFormatter(self.formatter)
         error_rotate_handler.setLevel(logging.WARNING)  # fixed level
 

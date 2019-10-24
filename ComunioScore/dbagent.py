@@ -2,6 +2,7 @@ import logging
 import configparser
 from ComunioScore.db.connector import DBConnector
 from ComunioScore.db.inserter import DBInserter
+from ComunioScore.db.fetcher import DBFetcher
 from ComunioScore.db.creator import DBCreator, Schema, Table, Column
 from ComunioScore import ROOT_DIR
 
@@ -46,10 +47,11 @@ class DBAgent:
         self.db_name     = self.config.get('database', 'dbname')
 
         # create database instances
-        DBConnector.connect(host=self.db_host, port=self.db_port, username=self.db_user, password=self.db_password,
-                            dbname=self.db_name, minConn=1, maxConn=5)
+        DBConnector.connect_psycopg(host=self.db_host, port=self.db_port, username=self.db_user,
+                                    password=self.db_password, dbname=self.db_name, minConn=1, maxConn=5)
         self.dbcreator = DBCreator()
         self.dbinserter = DBInserter()
+        self.dbfetcher = DBFetcher()
 
         # at start create all necessary tables for comunioscore
         self.__create_tables_for_communioscore()

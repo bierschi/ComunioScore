@@ -59,7 +59,6 @@ class BundesligaScore(SofaScore):
         """
 
         lineup = self.get_lineups_match(match_id=match_id)
-
         players_home_team = lineup['homeTeam']['lineupsSorted']
         players_away_team = lineup['awayTeam']['lineupsSorted']
         lineup_dict = dict()
@@ -153,6 +152,6 @@ class BundesligaScore(SofaScore):
 
 if __name__ == '__main__':
     b = BundesligaScore()
-    #print(b.lineup_from_match_id(match_id=8272006))
+    print(b.lineup_from_match_id(match_id=8272022))
     #b.vis_lineup_with_rating(8272006)
-    print(b.is_finished(8272006))
+    #print(b.is_finished(8272006))
