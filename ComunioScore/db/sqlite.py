@@ -1,7 +1,7 @@
 import sqlite3
 import logging
 from ComunioScore.db.context import SQLiteCursorContextManager, SQLiteConnectionContextManager
-from ComunioScore.exceptions.db import DBConnectorError
+from ComunioScore.exceptions import DBConnectorError
 
 
 class SQLite:

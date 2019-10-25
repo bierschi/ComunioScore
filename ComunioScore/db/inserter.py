@@ -1,6 +1,6 @@
 import logging
 from ComunioScore.db.connector import DBConnector
-from ComunioScore.exceptions.db import DBInserterError
+from ComunioScore.exceptions import DBInserterError
 
 
 class DBInserter(DBConnector):

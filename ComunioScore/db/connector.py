@@ -2,7 +2,7 @@ import logging
 import sqlite3
 from ComunioScore.db.context import PostgresqlCursorContextManager, PostgresqlConnectionContextManager, \
     SQLiteCursorContextManager, SQLiteConnectionContextManager
-from ComunioScore.exceptions.db import DBConnectorError
+from ComunioScore.exceptions import DBConnectorError
 try:
     import psycopg2
     from psycopg2.pool import ThreadedConnectionPool
