@@ -53,6 +53,9 @@ class DBAgent:
         self.dbinserter = DBInserter()
         self.dbfetcher = DBFetcher()
 
+        # get telegram token
+        self.telegram_token = self.config.get('telegram', 'token')
+
         # at start create all necessary tables for comunioscore
         self.__create_tables_for_communioscore()
 

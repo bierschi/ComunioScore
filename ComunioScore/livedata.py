@@ -5,6 +5,7 @@ from difflib import SequenceMatcher
 from ComunioScore.dbagent import DBAgent
 from ComunioScore.matchscheduler import MatchScheduler
 from ComunioScore.score.bundesligascore import BundesligaScore
+from ComunioScore.messenger.comunioscore_telegram import ComunioScoreTelegram
 
 
 class LiveDataProvider(DBAgent):
@@ -73,7 +74,7 @@ class LiveDataProvider(DBAgent):
         """ executes the match event
 
         """
-        self.logger.info("Start fetching data from matchday {} with matchid {}: {}:{}".format(matchday, matchid, hometeam, awayteam))
+
         fetcher = LiveDataFetcher(matchday=matchday, matchid=matchid, hometeam=hometeam, awayteam=awayteam)
         fetcher.start()
 
@@ -114,22 +115,32 @@ class LiveDataFetcher(BundesligaScore, threading.Thread, DBAgent):
         self.squad_sql = "select username, playername, club from comunioscore.squad where userid = %s"
 
         self.comuniouser = self.dbfetcher.all(sql=self.user_sql)
+        self.telegram = ComunioScoreTelegram(token=self.telegram_token)
 
     def run(self):
         """ run thread for lineup rating
 
         """
-
+        start_msg = "Start fetching live data from matchday {} with {} : {}".format(self.matchday, self.hometeam, self.awayteam)
+        self.logger.info(start_msg)
+        self.telegram.new_msg(text=start_msg)
         while not self.is_finished(matchid=self.matchid):
             rest_data = self.create_rest_query()
             comunio_livedata = self.get_comunio_livedata(rest_query_list=rest_data)
+            telegram_str = ""
+            match_str = "Match {} : {} \n\n".format(self.hometeam, self.awayteam)
+            telegram_str += match_str
             for user in comunio_livedata:
                 for player in user['squad']:
-                    visulize = "{}: {} {}".format(user['user'], player['name'], player['rating'])
-                    self.logger.info(visulize)
+                    player_str = ''.join("{}: {} {}\n".format(user['user'], player['name'], player['rating']))
+                    telegram_str += player_str
+            self.logger.info(telegram_str)
+            self.telegram.new_msg(text=telegram_str)
             time.sleep(540)  # wait 9 minutes
 
-        print("finished thread with matchid: {}".format(self.matchid))
+        finish_str = "finished match {} : {}".format(self.hometeam, self.awayteam)
+        self.logger.info(finish_str)
+        self.telegram.new_msg(text=finish_str)
 
     def create_rest_query(self):
         """ creates the rest query for sofascore data
