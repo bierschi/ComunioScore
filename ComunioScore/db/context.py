@@ -1,10 +1,10 @@
 
 
-class CursorContextManager:
+class PostgresqlCursorContextManager:
     """ class CursorContextManager to create the cursor object within a context
 
     USAGE:
-            CursorContextManager(pool=pool, autocommit=False)
+            PostgresqlCursorContextManager(pool=pool, autocommit=False)
 
     """
     def __init__(self, pool, autocommit=False):
@@ -43,11 +43,11 @@ class CursorContextManager:
         self.pool.putconn(self.conn)
 
 
-class ConnectionContextManager:
+class PostgresqlConnectionContextManager:
     """ class ConnectionContextManager to create the connection object within a context
 
     USAGE:
-            ConnectionContextManager(pool=pool, autocommit=False)
+            PostgresqlConnectionContextManager(pool=pool, autocommit=False)
 
     """
     def __init__(self, pool, autocommit=False):
@@ -76,3 +76,57 @@ class ConnectionContextManager:
         self.conn.rollback()
         self.conn.autocommit = False
         self.pool.putconn(self.conn)
+
+
+class SQLiteCursorContextManager:
+    """ class SQLiteCursorContextManager to create the cursor object within a context
+
+    USAGE:
+            SQLiteCursorContextManager(conn=SQLite.connection)
+
+    """
+    def __init__(self, conn):
+        self.conn = conn
+
+    def __enter__(self):
+        """ implicit enter context for a cursor object generated form SQLite Database
+
+        :return: cursor object
+        """
+        return self.conn.cursor()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """ implicit exit context to cleanly execute commit on current connection object
+
+        :param exc_type: exception type
+        :param exc_val: exception value
+        :param exc_tb: exception traceback
+        """
+        self.conn.commit()
+
+
+class SQLiteConnectionContextManager:
+    """ class SQLiteConnectionContextManager to create the connection object within a context
+
+    USAGE:
+            SQLiteConnectionContextManager(conn=SQLite.connection)
+
+    """
+    def __init__(self, conn):
+        self.conn = conn
+
+    def __enter__(self):
+        """
+
+        :return:
+        """
+        return self.conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """ implicit exit context to cleanly execute commit on current connection object
+
+        :param exc_type: exception type
+        :param exc_val: exception value
+        :param exc_tb: exception traceback
+        """
+        self.conn.commit()

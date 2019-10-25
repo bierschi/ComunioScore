@@ -12,7 +12,7 @@ class Comunio:
             comunio.get_all_user_ids()
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class Comunio')
 
         # user
@@ -56,6 +56,7 @@ class Comunio:
         """ destructor
 
         """
+        self.session.close()
         if self.auth_token is not None:
             self.session.cookies.clear()
 
@@ -267,9 +268,11 @@ class Comunio:
 
             request_info = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad-latest', headers=headers_info)
             json_data = json.loads(request_info.text)
-
-            wealth = int(json_data['matchday']['budget'])
-            return wealth
+            wealth = json_data['matchday']['budget']
+            if wealth is None:  # no budget available
+                return wealth
+            else:
+                return int(json_data['matchday']['budget'])
 
     def get_squad(self, userid):
         """ get squad from given userid
@@ -323,5 +326,6 @@ class Comunio:
 if __name__ == '__main__':
     comunio = Comunio()
     print(comunio.login(username='', password=''))
-    print(comunio.get_auth_info())
+    print(comunio.get_wealth(comunio.get_user_id()))
+
 

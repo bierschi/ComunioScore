@@ -1,9 +1,15 @@
 import logging
-import psycopg2
-from psycopg2.pool import ThreadedConnectionPool
-
-from ComunioScore.db.context import CursorContextManager, ConnectionContextManager
+import sqlite3
+from ComunioScore.db.context import PostgresqlCursorContextManager, PostgresqlConnectionContextManager, \
+    SQLiteCursorContextManager, SQLiteConnectionContextManager
 from ComunioScore.exceptions.db import DBConnectorError
+try:
+    import psycopg2
+    from psycopg2.pool import ThreadedConnectionPool
+    is_psycopg2_importable=True
+except ImportError as ex:
+    is_psycopg2_importable=False
+    print(ex)
 
 
 class DBConnector:
@@ -13,15 +19,16 @@ class DBConnector:
             connector = DBConnector()
             connector.connect(host, port, username, password, dbname, minConn=1, maxConn=10)
     """
-    # attribute for connection pools
+    # class attributes for connection and pool
+    connection = None
     pool = None
 
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class DBConnector')
 
     @classmethod
-    def connect(cls, host, port, username, password, dbname, minConn=1, maxConn=10):
+    def connect_psycopg(cls, host, port, username, password, dbname, minConn=1, maxConn=10):
         """ connection to the ThreadedConnectionPool
 
         :param host: hostname of database
@@ -33,12 +40,28 @@ class DBConnector:
         :param maxConn: maximum connections
         """
         try:
-            # create connection pool
-            cls.pool = ThreadedConnectionPool(minconn=minConn, maxconn=maxConn, user=username,
-                                               password=password, host=host, port=port, database=dbname)
-
+            if is_psycopg2_importable:
+                # create connection pool
+                cls.pool = ThreadedConnectionPool(minconn=minConn, maxconn=maxConn, user=username,
+                                                  password=password, host=host, port=port, database=dbname)
+            else:
+                print("psycogp2 is not imported")
         except psycopg2.DatabaseError as e:
             logging.getLogger('ComunioScoreApp').error('Could not connect to ThreadedConnectionPool: {}'.format(e))
+
+    @classmethod
+    def connect_sqlite(cls, path):
+        """ connection to the sqlite database
+
+        :param path: path to database file
+        """
+
+        try:
+
+            cls.connection = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
+
+        except sqlite3.DatabaseError as ex:
+            logging.getLogger('ComunioScoreApp').error('Could not connect to sqlite Database: {}'.format(ex))
 
     def get_cursor(self, autocommit=False):
         """ get a cursor object from ConnectionPool
@@ -47,9 +70,11 @@ class DBConnector:
         :return: cursor object
         """
         if self.pool is not None:
-            return CursorContextManager(self.pool, autocommit=autocommit)
+            return PostgresqlCursorContextManager(self.pool, autocommit=autocommit)
+        elif self.connection is not None:
+            return SQLiteCursorContextManager(self.connection)
         else:
-            raise DBConnectorError("ThreadedConnectionPool was not defined")
+            raise DBConnectorError("Database connection is not defined")
 
     def get_conn(self, autocommit=False):
         """ get a connection object from ConnectionPool
@@ -58,16 +83,17 @@ class DBConnector:
         :return: connection object
         """
         if self.pool is not None:
-            return ConnectionContextManager(self.pool, autocommit=autocommit)
+            return PostgresqlConnectionContextManager(self.pool, autocommit=autocommit)
+        elif self.connection is not None:
+            return SQLiteConnectionContextManager(self.connection)
         else:
-            raise DBConnectorError("ThreadedConnectionPool was not defined")
+            raise DBConnectorError("Database connection is not defined")
 
     def commit(self):
         """ commits a sql statement
 
         """
-        if self.pool is not None:
-            with self.get_conn() as conn:
-                conn.commit()
-        else:
-            raise DBConnectorError("ThreadedConnectionPool was not defined")
+        with self.get_conn() as conn:
+            conn.commit()
+
+

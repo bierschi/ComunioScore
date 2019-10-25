@@ -11,7 +11,7 @@ class SofaScore:
 
     """
     def __init__(self):
-        self.logger = logging.getLogger('ComunioScoreApp')
+        self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class SofaScore')
 
         # urls to retrieve specific data
@@ -19,6 +19,7 @@ class SofaScore:
         self.event_url        = "https://www.sofascore.com/event/{event_id}/json"
         self.lineups_url      = "https://www.sofascore.com/event/{event_id}/lineups/json"
         self.player_stats_url = "https://www.sofascore.com/event/{event_id}/player/{player_id}/statistics/json"
+        self.season_url       = "http://api.sofascore.com/mobile/v4/unique-tournament/35/season/{season_id}/events"
 
     def __request_api(self, url):
         """ request data from sofascore url
@@ -75,10 +76,19 @@ class SofaScore:
         player_stats_url = self.player_stats_url.format(event_id=match_id, player_id=player_id)
         return self.__request_api(url=player_stats_url)
 
+    def get_season(self, season_id):
+        """ get season data from given season_id
+
+        :param season_id: unique id for sofascore
+        :return: json dict
+        """
+        season_url = self.season_url.format(season_id=season_id)
+        return self.__request_api(url=season_url)
+
 
 if __name__ == '__main__':
     sc = SofaScore()
-    print(sc.get_lineups_match(8272007))
-    print(sc.get_player_stats(match_id=8272007, player_id=190159))
+    #print(sc.get_lineups_match(8272007))
+    print(sc.get_season(season_id=23538))
     #print(sc.parse_lineups_event(event_id=8271996))
 

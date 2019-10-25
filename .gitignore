@@ -108,3 +108,4 @@ venv.bak/
 ComunioScore/config/cfg.ini
 ComunioScore/json_data
 notes.txt
+ComunioScore/test.py
