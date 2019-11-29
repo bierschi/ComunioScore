@@ -326,6 +326,7 @@ class Comunio:
 if __name__ == '__main__':
     comunio = Comunio()
     print(comunio.login(username='', password=''))
-    print(comunio.get_wealth(comunio.get_user_id()))
+    print(comunio.get_auth_token())
+
 
 

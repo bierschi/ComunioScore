@@ -22,6 +22,7 @@ class DBConnector:
     # class attributes for connection and pool
     connection = None
     pool = None
+    is_sqlite = False
 
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
@@ -59,6 +60,7 @@ class DBConnector:
         try:
 
             cls.connection = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
+            cls.is_sqlite = True
 
         except sqlite3.DatabaseError as ex:
             logging.getLogger('ComunioScoreApp').error('Could not connect to sqlite Database: {}'.format(ex))

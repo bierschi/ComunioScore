@@ -27,8 +27,8 @@ class ComunioScore:
         restdb.start()
 
         # provide livedata
-        live = LiveDataProvider()
-        live.start()
+        #live = LiveDataProvider()
+        #live.start()
 
     def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port

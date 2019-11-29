@@ -116,9 +116,9 @@ class SQLiteConnectionContextManager:
         self.conn = conn
 
     def __enter__(self):
-        """
+        """ implicit enter context for a connection object generated form SQLite Database
 
-        :return:
+        :return: connection object
         """
         return self.conn
 

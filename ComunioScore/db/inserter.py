@@ -49,6 +49,9 @@ class DBInserter(DBConnector):
         :param autocommit: bool to enable autocommit
         """
         with self.get_cursor(autocommit=autocommit) as cursor:
+            if self.is_sqlite:
+                sql = sql.replace('%s', '?')
+
             cursor.execute(sql, data)
 
     def many_rows(self, sql, datas, autocommit=False):
@@ -65,6 +68,9 @@ class DBInserter(DBConnector):
         """
         if isinstance(datas, list):
             with self.get_cursor(autocommit=autocommit) as cursor:
+                if self.is_sqlite:
+                    sql = sql.replace('%s', '?')
+
                 cursor.executemany(sql, datas)
         else:
             raise DBInserterError("'datas' must be type of list")

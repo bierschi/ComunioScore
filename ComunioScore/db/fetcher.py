@@ -28,6 +28,9 @@ class DBFetcher(DBConnector):
         :return: one row from table
         """
         with self.get_cursor(autocommit=autocommit) as cursor:
+            if self.is_sqlite:
+                sql = sql.replace('%s', '?')
+
             if data is None:
                 cursor.execute(sql)
             else:
@@ -45,6 +48,9 @@ class DBFetcher(DBConnector):
         :return: many rows from table
         """
         with self.get_cursor(autocommit=autocommit) as cursor:
+            if self.is_sqlite:
+                sql = sql.replace('%s', '?')
+
             if data is None:
                 cursor.execute(sql)
             else:
@@ -61,6 +67,9 @@ class DBFetcher(DBConnector):
         :return: all rows from table
         """
         with self.get_cursor(autocommit=autocommit) as cursor:
+            if self.is_sqlite:
+                sql = sql.replace('%s', '?')
+
             if data is None:
                 cursor.execute(sql)
             else:
