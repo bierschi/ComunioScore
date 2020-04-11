@@ -1,5 +1,5 @@
 import logging
-from ComunioScore.db.connector import DBConnector
+from ComunioScore.db import DBConnector
 from ComunioScore.exceptions import DBCreatorError
 
 
@@ -35,7 +35,7 @@ class Schema:
     """ class Schema to build a sql string for Schema creation
 
     USAGE:
-            Schema(name="comunioscore")
+            Schema(name="credstuffer")
 
     """
     def __init__(self, name):

@@ -1,19 +1,23 @@
 import logging
 import argparse
+
 from ComunioScore.routes.router import Router
 from ComunioScore.api import APIHandler
-from ComunioScore.restdb import RestDB
+from ComunioScore.dbagent import DBAgent
 from ComunioScore.utils.logger import Logger
-from ComunioScore.livedata import LiveDataProvider
+#from ComunioScore.livedata import LiveDataProvider
+from ComunioScore import __version__
 
 
 class ComunioScore:
 
-    def __init__(self, name):
+    def __init__(self, name, comunio_user, comunio_pass, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('create class ComunioScore')
 
         self.name = name
+        self.comunio_user = comunio_user
+        self.comunio_pass = comunio_pass
 
         # defines the api handler methods
         self.api = APIHandler()
@@ -22,9 +26,11 @@ class ComunioScore:
         self.router = Router(name=self.name)
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
-        # create instance db agent
-        restdb = RestDB(config_file='cfg.ini')
-        restdb.start()
+        # create dbagent instance
+        dbagent = DBAgent(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
+
+        #restdb = RestDB(config_file='cfg.ini')
+        #restdb.start()
 
         # provide livedata
         #live = LiveDataProvider()
@@ -43,11 +49,36 @@ class ComunioScore:
 
 def main():
 
-    # parse arguments
-    parser = argparse.ArgumentParser(description="Arguments for application ComunioScore")
-    parser.add_argument('--host',       type=str, help='hostname for the application')
-    parser.add_argument('--port',       type=int, help='port for the application')
-    parser.add_argument('--log-folder', type=str, help='log folder for ComunioScore')
+    # ComuniScore usage
+    usage1 = "ComunioScore "
+    usage2 = "ComunioScore "
+
+    description = "console script for application ComunioScore \n\nUsage:\n    {}\n    {}".format(usage1, usage2)
+    # parse arguments for ComunioScore
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    # arguments for the server
+    parser.add_argument('-ho', '--host',      type=str, help='hostname for the application')
+    parser.add_argument('-po', '--port',      type=int, help='port for the application')
+
+    # arguments  for the database
+    parser.add_argument('-H', '--dbhost',     type=str, help='Hostname for the database connection', required=True)
+    parser.add_argument('-P', '--dbport',     type=int, help='Port for the database connection',     required=True)
+    parser.add_argument('-U', '--dbuser',     type=str, help='User for the database connection',     required=True)
+    parser.add_argument('-p', '--dbpassword', type=str, help='Password from the user',               required=True)
+    parser.add_argument('-DB', '--dbname',    type=str, help='Database name',                        required=True)
+
+    # arguments for comunio login
+    parser.add_argument('-cu', '--comunio_user', type=str, help='User for the comunio login',        required=True)
+    parser.add_argument('-cp', '--comunio_pass', type=str, help='Password for the comunio login',    required=True)
+
+    # argument for the log folder
+    parser.add_argument('-l', '--log-folder',  type=str, help='log folder for ComunioScore Application')
+
+    # argument for the current version
+    parser.add_argument('-v', '--version', action='version', version=__version__, help='show the current version')
+
+    # parse all arguments
     args = parser.parse_args()
 
     if args.host is None:
@@ -65,12 +96,24 @@ def main():
     else:
         log_folder = args.log_folder
 
+    dbparams = dict()
+    dbhost = args.dbhost
+    dbport = args.dbport
+    dbusername = args.dbuser
+    dbpassword = args.dbpassword
+    dbname = args.dbname
+    dbparams.update({'host': dbhost, 'port': dbport, 'username': dbusername, 'password': dbpassword,
+                                     'dbname': dbname})
+
+    comunio_user = args.comunio_user
+    comunio_pass = args.comunio_pass
+
     # set up logger instance
     logger = Logger(name='ComunioScore', level='info', log_folder=log_folder)
-    logger.info("start application ComunioScoreApp")
+    logger.info("start application ComunioScore")
 
     # create application instance
-    cs = ComunioScore(name="ComunioScoreApp")
+    cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, **dbparams)
 
     # run the application
     cs.run(host=host, port=port)

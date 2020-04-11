@@ -32,15 +32,16 @@ class PostgresqlCursorContextManager:
         :param exc_tb: exception traceback
         """
 
-        if (exc_type and exc_val and exc_tb) is None:
-            self.conn.commit()
-        else:
-            self.conn.rollback()
+        if not self.conn.closed:
+            if (exc_type and exc_val and exc_tb) is None:
+                self.conn.commit()
+            else:
+                self.conn.rollback()
 
-        # set False as default
-        self.conn.autocommit = False
-        self.cursor.close()
-        self.pool.putconn(self.conn)
+            # set False as default
+            self.conn.autocommit = False
+            self.cursor.close()
+            self.pool.putconn(self.conn)
 
 
 class PostgresqlConnectionContextManager:
@@ -72,10 +73,10 @@ class PostgresqlConnectionContextManager:
         :param exc_val: exception value
         :param exc_tb: exception traceback
         """
-
-        self.conn.rollback()
-        self.conn.autocommit = False
-        self.pool.putconn(self.conn)
+        if not self.conn.closed:
+            self.conn.rollback()
+            self.conn.autocommit = False
+            self.pool.putconn(self.conn)
 
 
 class SQLiteCursorContextManager:

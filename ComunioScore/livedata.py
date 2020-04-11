@@ -2,7 +2,7 @@ import time
 import logging
 import threading
 from difflib import SequenceMatcher
-from ComunioScore.dbagent import DBAgent
+from ComunioScore.dbhandler import DBHandler
 from ComunioScore.matchscheduler import MatchScheduler
 from ComunioScore.score.bundesligascore import BundesligaScore
 from ComunioScore.messenger.comunioscore_telegram import ComunioScoreTelegram

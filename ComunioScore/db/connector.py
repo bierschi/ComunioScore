@@ -6,6 +6,7 @@ from ComunioScore.exceptions import DBConnectorError
 try:
     import psycopg2
     from psycopg2.pool import ThreadedConnectionPool
+    from psycopg2 import Error
     is_psycopg2_importable=True
 except ImportError as ex:
     is_psycopg2_importable=False
@@ -45,10 +46,15 @@ class DBConnector:
                 # create connection pool
                 cls.pool = ThreadedConnectionPool(minconn=minConn, maxconn=maxConn, user=username,
                                                   password=password, host=host, port=port, database=dbname)
+                logging.getLogger('ComunioScore').info("Connect to {} as user {} to database {}".format(host, username, dbname))
+                return True
+
             else:
                 print("psycogp2 is not imported")
+                return False
         except psycopg2.DatabaseError as e:
-            logging.getLogger('ComunioScoreApp').error('Could not connect to ThreadedConnectionPool: {}'.format(e))
+            logging.getLogger('ComunioScore').error('Could not connect to ThreadedConnectionPool: {}'.format(e))
+            return False
 
     @classmethod
     def connect_sqlite(cls, path):
@@ -61,9 +67,18 @@ class DBConnector:
 
             cls.connection = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
             cls.is_sqlite = True
+            return True
 
         except sqlite3.DatabaseError as ex:
-            logging.getLogger('ComunioScoreApp').error('Could not connect to sqlite Database: {}'.format(ex))
+            logging.getLogger('ComunioScore').error('Could not connect to sqlite Database: {}'.format(ex))
+            return False
+
+    @classmethod
+    def close(cls):
+        """ closes all pool connections
+
+        """
+        cls.pool.closeall()
 
     def get_cursor(self, autocommit=False):
         """ get a cursor object from ConnectionPool

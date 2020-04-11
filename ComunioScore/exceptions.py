@@ -13,3 +13,8 @@ class DBCreatorError(Exception):
 class DBInserterError(Exception):
     """DBInserterException"""
     pass
+
+
+class DBIntegrityError(Exception):
+    """DBIntegrityError"""
+    pass
