@@ -1,5 +1,5 @@
 import logging
-from ComunioScore.db.connector import DBConnector
+from ComunioScore.db import DBConnector
 
 
 class DBFetcher(DBConnector):

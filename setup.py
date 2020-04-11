@@ -1,8 +1,6 @@
-import os
-import subprocess
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-from ComunioScore import __version__, __author__, __email__, __license__
+
+from ComunioScore import __version__, __author__, __email__, __license__, __title__
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
@@ -13,31 +11,17 @@ with open("README.md", encoding='utf-8') as f:
 with open("CHANGELOG.rst") as f:
     changelog = f.read()
 
-
-class CustomInstallCommand(install):
-
-    def run(self):
-        install.run(self)
-        current_dir_path = os.path.dirname(os.path.realpath(__file__))
-        service_path = os.path.join(current_dir_path, 'service', 'ComunioScoreService.sh')
-        print(service_path)
-        subprocess.check_output([service_path])
-
-
 setup(
-    name="ComunioScore",
+    name=__title__,
     version=__version__,
     description="Maps the sofascore rating to comunio players",
-    long_description=readme + "\n\n" + changelog,
+    long_description=readme,
     license=__license__,
     author=__author__,
     author_email=__email__,
     url="https://github.com/bierschi/ComunioScore",
     packages=find_packages(),
-    include_package_data=True,
-    data_files=[
-        ('/etc/systemd/system', ['service/ComunioScoreApp.service'])
-    ],
+    package_data={'ComunioScore': ['config/comunioscore.ini']},
     install_requires=required,
     keywords=["Comunio", "Sofascore", "Rating", "Score"],
     classifiers=[
@@ -56,11 +40,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            'ComunioScoreApp = ComunioScore.app:main'
+            'ComunioScore = ComunioScore.app:main'
         ],
     },
     zip_safe=False,
-    #cmdclass={
-    #    'install': CustomInstallCommand
-    #},
 )
