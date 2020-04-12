@@ -14,7 +14,7 @@ class DBHandler:
     """
     def __init__(self, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class DBHandler')
+        self.logger.info('Create class DBHandler')
 
         if ('host' and 'port' and 'username' and 'password' and 'dbname') in dbparams.keys():
             self.db_host     = dbparams['host']
@@ -30,7 +30,7 @@ class DBHandler:
                 self.dbinserter = DBInserter()
                 self.dbfetcher = DBFetcher()
 
-                self.comunioscore_schema = "comunioscore"
+                self.comunioscore_schema = "comunioscore2"
                 self.comunioscore_table_auth = "auth"
                 self.comunioscore_table_user = "user"
                 self.comunioscore_table_squad = "squad"
@@ -52,11 +52,11 @@ class DBHandler:
         """
 
         # create schema if not exists comunioscore
-        self.logger.info("create Schema {}".format(self.comunioscore_schema))
+        self.logger.info("Create Schema {}".format(self.comunioscore_schema))
         self.dbcreator.build(obj=Schema(name=self.comunioscore_schema))
 
         # create table if not exists auth
-        self.logger.info("create Table {}".format(self.comunioscore_table_auth))
+        self.logger.info("Create Table {}".format(self.comunioscore_table_auth))
         self.dbcreator.build(obj=Table(self.comunioscore_table_auth,
                                        Column(name="timestamp_utc", type="bigint"),
                                        Column(name="datetime", type="text"),
@@ -69,7 +69,7 @@ class DBHandler:
                                        schema=self.comunioscore_schema))
 
         # create table if not exists communityuser
-        self.logger.info("create Table {}".format(self.comunioscore_table_user))
+        self.logger.info("Create Table {}".format(self.comunioscore_table_user))
         self.dbcreator.build(obj=Table(self.comunioscore_table_user,
                                      Column(name="userid", type="bigint", prim_key=True),
                                      Column(name="username", type="text"),
@@ -79,7 +79,7 @@ class DBHandler:
                                      schema=self.comunioscore_schema))
 
         # create table if not exists squad
-        self.logger.info("create Table {}".format(self.comunioscore_table_squad))
+        self.logger.info("Create Table {}".format(self.comunioscore_table_squad))
         self.dbcreator.build(obj=Table(self.comunioscore_table_squad,
                                      Column(name="userid", type="bigint"),
                                      Column(name="username", type="text"),
@@ -88,7 +88,7 @@ class DBHandler:
                                      Column(name="club", type="text"),
                                      schema=self.comunioscore_schema))
 
-        self.logger.info("create Table {}".format(self.comunioscore_table_season))
+        self.logger.info("Create Table {}".format(self.comunioscore_table_season))
         self.dbcreator.build(obj=Table(self.comunioscore_table_season,
                                        Column(name="match_day", type="Integer"),
                                        Column(name="match_type", type="text"),

@@ -27,7 +27,7 @@ class DBConnector:
 
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class DBConnector')
+        self.logger.info('Create class DBConnector')
 
     @classmethod
     def connect_psycopg(cls, host, port, username, password, dbname, minConn=1, maxConn=10):

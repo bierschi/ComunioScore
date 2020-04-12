@@ -13,7 +13,7 @@ class DBFetcher(DBConnector):
     """
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class DBFetcher')
+        self.logger.info('Create class DBFetcher')
 
         # init connector base class
         super().__init__()

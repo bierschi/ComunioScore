@@ -4,8 +4,7 @@ import configparser
 from configparser import NoOptionError, NoSectionError
 
 from ComunioScore.routes import Router
-from ComunioScore import APIHandler
-from ComunioScore.dbagent import DBAgent
+from ComunioScore import APIHandler, ComunioDB, SofascoreDB
 #from ComunioScore.livedata import LiveDataProvider
 from ComunioScore.utils import Logger
 from ComunioScore import __version__
@@ -15,7 +14,7 @@ class ComunioScore:
 
     def __init__(self, name, comunio_user, comunio_pass, token, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class ComunioScore')
+        self.logger.info('Create class ComunioScore')
 
         self.name = name
         self.comunio_user = comunio_user
@@ -29,11 +28,13 @@ class ComunioScore:
         self.router = Router(name=self.name)
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
-        # create dbagent instance
-        dbagent = DBAgent(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
+        # create ComunioDB instance
+        comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
+        comuniodb.start()
 
-        #restdb = RestDB(config_file='cfg.ini')
-        #restdb.start()
+        # create SofascoreDB instance
+        sofascoredb = SofascoreDB(**dbparams)
+        sofascoredb.start()
 
         # provide livedata
         #live = LiveDataProvider()

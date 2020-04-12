@@ -12,7 +12,7 @@ class Database:
     """
     def __init__(self, name):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class Database')
+        self.logger.info('Create class Database')
 
         self.name = name
 
@@ -200,7 +200,7 @@ class DBCreator(DBConnector):
     """
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class DBCreator')
+        self.logger.info('Create class DBCreator')
 
         # init connector base class
         super().__init__()
