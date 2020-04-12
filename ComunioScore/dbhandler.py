@@ -32,12 +32,9 @@ class DBHandler:
 
                 self.comunioscore_schema = "comunioscore"
                 self.comunioscore_table_auth = "auth"
-                self.comunioscore_table_communityuser = "user"
+                self.comunioscore_table_user = "user"
                 self.comunioscore_table_squad = "squad"
                 self.comunioscore_table_season = "season"
-
-                # get telegram token
-                #self.telegram_token = self.config.get('telegram', 'token')
 
                 # at start create all necessary tables for comunioscore
                 self.__create_tables_for_communioscore()
@@ -72,8 +69,8 @@ class DBHandler:
                                        schema=self.comunioscore_schema))
 
         # create table if not exists communityuser
-        self.logger.info("create Table {}".format(self.comunioscore_table_communityuser))
-        self.dbcreator.build(obj=Table(self.comunioscore_table_communityuser,
+        self.logger.info("create Table {}".format(self.comunioscore_table_user))
+        self.dbcreator.build(obj=Table(self.comunioscore_table_user,
                                      Column(name="userid", type="bigint", prim_key=True),
                                      Column(name="username", type="text"),
                                      Column(name="community", type="text"),

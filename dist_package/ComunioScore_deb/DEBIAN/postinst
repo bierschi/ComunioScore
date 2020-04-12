@@ -1,0 +1,31 @@
+#!/bin/bash
+
+main() {
+
+  install_whl
+  start_service_file
+
+}
+
+install_whl() {
+
+  echo "Install ComunioScore"
+  pip3 install /etc/ComunioScore/ComunioScore-*-py3-none-any.install_whl
+
+}
+
+enable_service_file() {
+
+  echo "Enable ComunioScore.service file"
+  systemctl enable ComunioScore.service
+
+}
+
+start_service_file() {
+
+  echo "Start ComunioScore.service file"
+  systemctl start ComunioScore.service
+
+}
+
+main

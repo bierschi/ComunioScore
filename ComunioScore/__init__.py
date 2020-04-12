@@ -9,4 +9,6 @@ import os
 from ComunioScore.dbhandler import DBHandler
 from ComunioScore.comunio import Comunio
 from ComunioScore.dbagent import DBAgent
+from ComunioScore.api import APIHandler
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))

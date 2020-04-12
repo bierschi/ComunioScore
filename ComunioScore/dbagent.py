@@ -28,6 +28,7 @@ class DBAgent(DBHandler):
 
         # create comunio instance
         self.comunio = Comunio()
+
         # create BundesligaScore instance
         self.bundesliga = BundesligaScore()
 

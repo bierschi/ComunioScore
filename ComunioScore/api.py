@@ -1,6 +1,5 @@
 import json
 from flask import Response, request
-#from ComunioScore.db.fetcher import DBFetcher
 
 
 class APIHandler:

@@ -1,0 +1,8 @@
+Package: ComunioScore
+Version: 1.0.2
+Section: python
+Priority: optional
+Maintainer: christian.bierschneider@web.de
+Architecture: all
+Depends: python3, python3-pip, libpq-dev
+Description: Debian package for ComunioScore Application

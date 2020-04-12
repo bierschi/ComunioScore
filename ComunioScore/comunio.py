@@ -68,7 +68,8 @@ class Comunio:
         :return: bool, if login was successful
         """
 
-        data_login = [('username', username), ('password', password),]
+        data_login = [('username', username),
+                      ('password', password)]
 
         try:
 
