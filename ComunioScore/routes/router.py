@@ -13,7 +13,7 @@ class Router:
 
     def __init__(self, name):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class Router')
+        self.logger.info('Create class Router')
 
         self.name = name
         self.app = Flask(self.name)

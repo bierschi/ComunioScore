@@ -15,7 +15,7 @@ class SQLite:
 
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info("create class SQLite")
+        self.logger.info("Create class SQLite")
 
     def __del__(self):
         """ destructor
