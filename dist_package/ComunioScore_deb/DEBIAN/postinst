@@ -8,6 +8,7 @@ main() {
   then
       echo "Start Application ComunioScore"
       enable_service_file
+      stop_service_file
       start_service_file
   else
       echo "ComunioScore not started due to missing configuration file!"
@@ -26,6 +27,13 @@ enable_service_file() {
 
   echo "Enable ComunioScore.service file"
   systemctl enable ComunioScore.service
+
+}
+
+stop_service_file() {
+
+  echo "Stop ComunioScore.service file"
+  systemctl stop ComunioScore.service
 
 }
 
