@@ -14,3 +14,4 @@ from ComunioScore.comuniodb import ComunioDB
 from ComunioScore.sofascoredb import SofascoreDB
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
