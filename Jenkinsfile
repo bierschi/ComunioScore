@@ -36,7 +36,7 @@ pipeline {
                     steps {
                         echo 'Build Source Distribution'
                         dir('dist_package'){
-                            sh './build_package.sh --wheel --debian'
+                            sh './build_package.sh --debian'
                         }
                     }
                     post {
