@@ -58,7 +58,7 @@ class SofascoreDB(DBHandler, Thread):
         for matchday in season_data:
             start_dt = datetime.datetime.fromtimestamp(matchday['startTimestamp'])
             season_list.append((matchday['matchDay'], matchday['type'], matchday['matchId'], matchday['startTimestamp'],
-                                start_dt,matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore']))
+                                start_dt, matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore']))
 
         try:
             self.dbinserter.many_rows(sql=sql, datas=season_list)
