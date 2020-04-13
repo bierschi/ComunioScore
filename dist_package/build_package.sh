@@ -53,6 +53,7 @@ build_debian() {
   echo -e "Build debian package\n"
   build_wheel_file
   move_wheel_file_deb
+  cp_config_file
   cp_service_file
   remove_setup_dist_files
   build_deb_package
@@ -82,21 +83,21 @@ build_wheel_file(){
 
 move_wheel_file() {
 
-  mv dist/ComunioScore-*-py3-none-any.whl dist_package/
+  cp dist/ComunioScore-*-py3-none-any.whl dist_package/
 
 }
 
 move_wheel_file_deb() {
 
   mkdir -p dist_package/ComunioScore_deb/etc/ComunioScore/
-  mv dist/ComunioScore-*-py3-none-any.whl dist_package/ComunioScore_deb/etc/ComunioScore
+  cp dist/ComunioScore-*-py3-none-any.whl dist_package/ComunioScore_deb/etc/ComunioScore
 
 }
 
 cp_config_file() {
 
   mkdir -p dist_package/ComunioScore_deb/etc/ComunioScore/
-  cp ComunioScore/config/cfg.ini dist_package/ComunioScore_deb/etc/ComunioScore/
+  cp ComunioScore/config/comunioscore.ini dist_package/ComunioScore_deb/etc/ComunioScore/
 
 }
 
