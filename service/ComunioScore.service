@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/ComunioScore
+ExecStart=/usr/local/bin/ComunioScore config --file /etc/ComunioScore/cfg.ini
 Restart=always
 User=christian
 Group=christian

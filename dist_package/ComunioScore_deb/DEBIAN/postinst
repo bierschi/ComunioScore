@@ -3,14 +3,22 @@
 main() {
 
   install_whl
-  start_service_file
+
+  if [[ -f /etc/ComunioScore/cfg.ini ]]
+  then
+      echo "Start Application ComunioScore"
+      enable_service_file
+      start_service_file
+  else
+      echo "ComunioScore not started due to missing configuration file!"
+  fi
 
 }
 
 install_whl() {
 
-  echo "Install ComunioScore"
-  pip3 install /etc/ComunioScore/ComunioScore-*-py3-none-any.install_whl
+  echo "Install ComunioScore Application"
+  pip3 install /etc/ComunioScore/ComunioScore-*-py3-none-any.whl
 
 }
 
