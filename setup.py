@@ -16,6 +16,7 @@ setup(
     version=__version__,
     description="Maps the sofascore rating to comunio players",
     long_description=readme,
+    long_description_content_type='text/markdown',
     license=__license__,
     author=__author__,
     author_email=__email__,
