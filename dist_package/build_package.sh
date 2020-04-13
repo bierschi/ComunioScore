@@ -53,7 +53,7 @@ build_debian() {
   echo -e "Build debian package\n"
   build_wheel_file
   move_wheel_file_deb
-  cp_config_file
+  #cp_config_file
   cp_service_file
   remove_setup_dist_files
   build_deb_package
@@ -77,7 +77,7 @@ set_version() {
 # build the whl file
 build_wheel_file(){
 
-  python3 setup.py bdist_wheel
+  sudo python3 setup.py bdist_wheel
 
 }
 
@@ -110,7 +110,7 @@ cp_service_file() {
 
 remove_setup_dist_files() {
 
-  rm -r dist/ build/ ComunioScore.egg-info
+  sudo rm -r dist/ build/ ComunioScore.egg-info
 
 }
 
@@ -122,7 +122,7 @@ build_deb_package() {
 
 remove_etc_folder() {
 
-  rm -r dist_package/ComunioScore_deb/etc/
+  sudo rm -r dist_package/ComunioScore_deb/etc/
 
 }
 
