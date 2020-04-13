@@ -89,8 +89,8 @@ move_wheel_file() {
 
 move_wheel_file_deb() {
 
-  mkdir -p dist_package/ComunioScore_deb/etc/ComunioScore/
-  mv dist/ComunioScore-*-py3-none-any.whl dist_package/ComunioScore_deb/etc/ComunioScore
+  sudo mkdir -p dist_package/ComunioScore_deb/etc/ComunioScore/
+  sudo mv dist/ComunioScore-*-py3-none-any.whl dist_package/ComunioScore_deb/etc/ComunioScore
 
 }
 
