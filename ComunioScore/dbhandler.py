@@ -30,7 +30,7 @@ class DBHandler:
                 self.dbinserter = DBInserter()
                 self.dbfetcher = DBFetcher()
 
-                self.comunioscore_schema = "comunioscore2"
+                self.comunioscore_schema = "comunioscore"
                 self.comunioscore_table_auth = "auth"
                 self.comunioscore_table_user = "user"
                 self.comunioscore_table_squad = "squad"
