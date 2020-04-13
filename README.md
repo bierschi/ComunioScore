@@ -7,14 +7,36 @@
 
 ## Installation
 
-install package from source with
+install [ComunioScore](https://pypi.org/project/ComunioScore/) with pip
+<pre><code>
+pip3 install ComunioScore
+</code></pre>
+
+or from source
 <pre><code>
 sudo python3 setup.py install
 </code></pre>
 
-## Usage
 
-edit the `comunioscore.ini` file with credentials for comunio and postgres database:
+## Usage and Examples
+
+Print the available arguments for ComunioScore
+<pre><code>
+ComunioScore --help
+</code></pre>
+
+Use it with pure command line arguments
+<pre><code>
+ComunioScore args --host 127.0.0.1 --port 8086 --dbhost 127.0.01 --dbport 5432 --dbuser john --dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token adfefad
+</code></pre>
+
+Or with a configuration file
+<pre><code>
+ComunioScore config --file /etc/comunioscore/comunioscore.ini
+</code></pre>
+
+
+edit the `comunioscore.ini` file and add credentials from comunio and postgres database:
 <pre><code>
 [comunio]
 username=
@@ -22,48 +44,30 @@ password=
 
 [database]
 host=
-port=
+port=5432
 username=
 password=
 dbname=
 
-[comunioscore]
-schema=comunioscore
-table_auth=auth
-table_communityuser=communityuser
-table_squad=squad
-table_season=season
+[server]
+host='0.0.0.0'
+port=8086
 
 [telegram]
 token=
 </code></pre>
 
-execute the console script
+
+## Build Debian package
+
+change into directory 'dist_package' and execute:
 <pre><code>
-ComunioScoreApp
+./build_package.sh --debian
 </code></pre>
 
-or start the systemd service file
-<pre><code>
-sudo systemctl start ComunioScoreApp.service
-</code></pre>
+## Logs
 
-## Deployment on server
-
-create a wheel for server deployment
-<pre><code>
-sudo python3 setup.py bdist_wheel
-</code></pre>
-
-install wheel with
-<pre><code>
-pip3 install ComunioScore-1.0.0-py3-none-any.whl
-</code></pre>
-
-uninstall wheel with
-<pre><code>
-pip3 uninstall ComunioScore
-</code></pre>
+logs can be found in `/var/log/ComunioScore`
 
 ## Troubleshooting
 add your current user to group `syslog`, this allows the application to create a folder in
