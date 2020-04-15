@@ -1,67 +1,44 @@
-import logging
 import time
-import sched
+import logging
+from ComunioScore.scheduler import Scheduler
 
 
 class MatchScheduler:
-    """ class MatchScheduler to schedule events for matches
+    """ class MatchScheduler to schedule match events
 
     USAGE:
-            scheduler = MatchScheduler()
-            scheduler.run()
-
+            matchscheduler = MatchScheduler()
+            matchscheduler.register_livedata_event_handler(func=livedata.fetch)
+            matchscheduler.new_event(time.time(), 2, 103388, "team1", "team2")
     """
+    livedata_event_handler = None
+
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class MatchScheduler')
+        self.logger.info('Create class MatchScheduler')
 
-        # create scheduler
-        self.scheduler = sched.scheduler(time.time, time.sleep)
+        self.scheduler = Scheduler()
+        self.scheduler.start()
+        self.matches_tmp = [time.time() + 10, time.time() + 30, time.time() + 60]
 
-    def register_events(self, timestamp, handler, prio, *args):
-        """ register events to execute
+    @classmethod
+    def register_livedata_event_handler(cls, func):
+        """ registers a new livedata event handler
 
-        :param timestamp: start timestamp
-        :param handler: handler function
-        :param prio: prio for the event
-        :param args: variable arguments
-
-        :return event id
+        :param func: event handler for the livedata
         """
-        event_id = self.scheduler.enterabs(timestamp, prio, handler, argument=args)
-        return event_id
+        cls.livedata_event_handler = func
 
-    def get_event_queue(self):
-        """ get current event queue
-
-        :return: event queue
-        """
-        return self.scheduler.queue
-
-    def is_queue_empty(self):
-        """ is current queue empty
-
-        :return: bool, true or false
-        """
-        return self.scheduler.empty()
-
-    def cancel_event(self, eventid):
-        """ cancels an event
-
-        :param eventid: specific event id
-        """
-        self.scheduler.cancel(event=eventid)
-
-    def run(self, blocking=True):
-        """ runs the scheduler
+    def new_event(self, event_ts, match_day, match_id, home_team, away_team):
+        """ schedules a new match event with given match data
 
         """
-        self.scheduler.run(blocking=blocking)
 
+        self.logger.info("Register new match event for match day {}and match id {}".format(match_day, match_id))
 
-if __name__ == '__main__':
-    scheduler = MatchScheduler()
-    scheduler.register_events(time.time(), 'test', 1, 'b', 'c')
-    #scheduler.run()
+        if self.livedata_event_handler:
+            self.scheduler.register_events(event_ts, self.livedata_event_handler, 1, match_day, match_id, home_team, away_team)
+        else:
+            self.logger.error("No livedata_event_handler configured!")
 
 

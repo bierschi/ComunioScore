@@ -8,7 +8,8 @@ from ComunioScore import APIHandler, ComunioDB, SofascoreDB
 #from ComunioScore.livedata import LiveDataProvider
 from ComunioScore.utils import Logger
 from ComunioScore import __version__
-
+from ComunioScore.livedata import LiveData
+from ComunioScore.matchscheduler import MatchScheduler
 
 class ComunioScore:
 
@@ -29,9 +30,12 @@ class ComunioScore:
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
         # create ComunioDB instance
-        comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
-        comuniodb.start()
+        self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
+        self.comuniodb.start()
 
+        self.matchscheduler = MatchScheduler()
+        self.livedata = LiveData()
+        self.matchscheduler.register_livedata_event_handler(func=self.livedata.fetch)
         # create SofascoreDB instance
         sofascoredb = SofascoreDB(**dbparams)
         sofascoredb.start()

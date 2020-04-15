@@ -60,7 +60,7 @@ token=
 
 ## Build Debian package
 
-change into directory 'dist_package' and execute:
+change into directory `dist_package` and execute:
 <pre><code>
 ./build_package.sh --debian
 </code></pre>
