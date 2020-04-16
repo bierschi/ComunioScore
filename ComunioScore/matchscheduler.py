@@ -1,4 +1,3 @@
-import time
 import logging
 from ComunioScore.scheduler import Scheduler
 
@@ -17,9 +16,9 @@ class MatchScheduler:
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class MatchScheduler')
 
+        # create the scheduler thread
         self.scheduler = Scheduler()
         self.scheduler.start()
-        self.matches_tmp = [time.time() + 10, time.time() + 30, time.time() + 60]
 
     @classmethod
     def register_livedata_event_handler(cls, func):
@@ -34,7 +33,7 @@ class MatchScheduler:
 
         """
 
-        self.logger.info("Register new match event for match day {}and match id {}".format(match_day, match_id))
+        self.logger.info("Register new match event for match day {} and match id {}".format(match_day, match_id))
 
         if self.livedata_event_handler:
             self.scheduler.register_events(event_ts, self.livedata_event_handler, 1, match_day, match_id, home_team, away_team)

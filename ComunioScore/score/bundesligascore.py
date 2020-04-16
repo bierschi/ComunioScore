@@ -3,22 +3,79 @@ from ComunioScore.score.sofascore import SofaScore
 
 
 class BundesligaScore(SofaScore):
-    """ class BundesligaScore to retrieve statistics from  Bundesliga matches
+    """ class BundesligaScore to retrieve statistics from Bundesliga matches
 
     USAGE:
             buli = BundesligaScore()
             buli.season_data()
     """
-    def __init__(self):
+    def __init__(self, season_date):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class BundesligaScore')
+        self.logger.info('Create class BundesligaScore')
 
         # init base class
         super().__init__()
 
-        self.tournament_name = "Bundesliga"
+        self.season_date = season_date
+        self.season_name = None  # Bundesliga 19/20
+        self.season_year = None  # 19/20
+        self.season_id   = None  # 23583
+
+        self.__set_current_season()
+
         self.matchday_data_list = None
-        self.season_id_19_20 = 23538  # TODO not hardcoded
+
+    def __set_current_season(self):
+        """ sets the current season data
+
+        """
+
+        date = self.season_date.split('-')
+        date_day = int(date[2])
+        date_month = date[1]
+        date_year = date[0]
+
+        for i in range(0, 7):
+            if (date_day + i) < 10:
+                query_date_day = date_day + i
+                query_date_day = "0" + str(query_date_day)
+            else:
+                query_date_day = str(date_day + i)
+
+            if self.__get_current_season_data(date="{}-{}-{}".format(date_year, date_month, query_date_day)):
+                self.logger.info("Set current season data to {}".format(self.season_name))
+                break
+
+    def __get_current_season_data(self, date):
+        """ requests the current season data from sofascore with given date
+
+        :return: True if Bundesliga season was found, else False
+        """
+
+        season_data = self.get_date_data(date=date)
+
+        if 'sportItem' in season_data:
+            for tournaments in season_data['sportItem']['tournaments']:
+
+                # Find tournament bundesliga
+                if tournaments['tournament']['name'] == 'Bundesliga':
+                    # German bundesliga only
+                    if tournaments['category']['name'] == 'Germany':
+                        self.season_name = tournaments['season']['name']
+                        self.season_year = tournaments['season']['year']
+                        self.season_id   = tournaments['season']['id']
+                        return True
+                    else:
+                        pass
+                        #self.logger.error("No category 'Germany' in Bundesliga")
+
+                else:
+                    pass
+                    #self.logger.error("No tournament 'Bundesliga' was found")
+        else:
+            pass
+
+        return False
 
     def ids_for_matchday(self, date):
         """ get ids for all matches on given date
@@ -35,7 +92,7 @@ class BundesligaScore(SofaScore):
         date_data = self.get_date_data(date=date)
         tournaments = date_data['sportItem']['tournaments']
         for tournament in tournaments:
-            if (tournament['tournament']['name'] == self.tournament_name) and (tournament['category']['name'] == 'Germany'):
+            if (tournament['tournament']['name'] == 'Bundesliga') and (tournament['category']['name'] == 'Germany'):
                 bundesliga_events = tournament['events']
                 for event in bundesliga_events:
                     match = dict()
@@ -103,7 +160,7 @@ class BundesligaScore(SofaScore):
 
         season_list = list()
 
-        season_json = self.get_season(season_id=self.season_id_19_20)
+        season_json = self.get_season(season_id=self.season_id)
         for tournament in season_json['tournaments']:
             for event in tournament['events']:
                 season_dict = dict()
@@ -151,7 +208,7 @@ class BundesligaScore(SofaScore):
 
 
 if __name__ == '__main__':
-    b = BundesligaScore()
-    print(b.lineup_from_match_id(match_id=8272022))
+    b = BundesligaScore(season_date="2019-08-18")
+    print(b.set_current_season())
     #b.vis_lineup_with_rating(8272006)
     #print(b.is_finished(8272006))

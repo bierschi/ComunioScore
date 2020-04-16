@@ -1,7 +1,7 @@
 import logging
 import datetime
-from threading import Thread
 from time import sleep
+from threading import Thread
 
 from ComunioScore import DBHandler
 from ComunioScore.matchscheduler import MatchScheduler
@@ -17,7 +17,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, update_frequence=21600, **dbparams):
+    def __init__(self, season_date, update_frequence=21600, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -26,9 +26,10 @@ class SofascoreDB(DBHandler, Thread):
         Thread.__init__(self)
 
         self.update_frequence = update_frequence
+        self.season_date = season_date
 
         # create BundesligaScore instance
-        self.bundesliga = BundesligaScore()
+        self.bundesliga = BundesligaScore(season_date=self.season_date)
 
         self.matchscheduler = MatchScheduler()
 
@@ -44,7 +45,7 @@ class SofascoreDB(DBHandler, Thread):
         self.insert_season()
 
         while self.running:
-            sleep(2)
+            sleep(300)
             self.update_season_counter += 2
             self.query_match_data()
 
@@ -59,7 +60,7 @@ class SofascoreDB(DBHandler, Thread):
         self.logger.info("Insert season data into database")
 
         sql = "insert into {}.season (match_day, match_type, match_id, start_timestamp, start_datetime, homeTeam, " \
-              "awayTeam, homeScore, awayScore) values(%s, %s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
+              "awayTeam, homeScore, awayScore, season) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
 
         season_data = self.bundesliga.season_data()
         season_list = list()
@@ -67,7 +68,7 @@ class SofascoreDB(DBHandler, Thread):
         for matchday in season_data:
             start_dt = datetime.datetime.fromtimestamp(matchday['startTimestamp'])
             season_list.append((matchday['matchDay'], matchday['type'], matchday['matchId'], matchday['startTimestamp'],
-                                start_dt, matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore']))
+                                start_dt, matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore'], self.bundesliga.season_year))
 
         try:
             self.dbinserter.many_rows(sql=sql, datas=season_list)
@@ -104,9 +105,9 @@ class SofascoreDB(DBHandler, Thread):
             self.logger.error(ex)
 
     def get_last_match_day(self):
-        """
+        """ get last match day from database
 
-        :return:
+        :return: None if first match day, else last match day
         """
         last_match_day_sql = "select match_day from {}.{} where match_type='finished' order by match_day desc limit 1"\
                         .format(self.comunioscore_schema, self.comunioscore_table_season)
@@ -119,9 +120,8 @@ class SofascoreDB(DBHandler, Thread):
             return last_match_day[0]
 
     def query_match_data(self):
-        """
+        """ queries the match day data from season table and registers new match events
 
-        :return:
         """
 
         last_match_day = self.get_last_match_day()
@@ -137,6 +137,7 @@ class SofascoreDB(DBHandler, Thread):
             self.logger.error("length of match day data is greater than 9!!")
         else:
             for match in match_day_data:
+                # TODO Uncomment and change 'postponed' with 'notstarted'
                 #if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
                 #    self.logger.error("Not registering match day {}: {} vs. {} due to {}".format(match[0], match[5], match[6], match[1]))
 

@@ -12,7 +12,7 @@ class SofaScore:
     """
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class SofaScore')
+        self.logger.info('Create class SofaScore')
 
         # urls to retrieve specific data
         self.date_url         = "https://www.sofascore.com/football//{date}/json"  # yyyy-mm-dd
@@ -21,19 +21,26 @@ class SofaScore:
         self.player_stats_url = "https://www.sofascore.com/event/{event_id}/player/{player_id}/statistics/json"
         self.season_url       = "http://api.sofascore.com/mobile/v4/unique-tournament/35/season/{season_id}/events"
 
+        self.headers = {'Accept': 'application/json'}
+
     def __request_api(self, url):
         """ request data from sofascore url
 
         :param url: specific url depending on requested data
+
         :return: json dict
         """
         try:
+            json_dict = requests.get(url, headers=self.headers).json()
 
-            json_dict = requests.get(url).json()
             return json_dict
 
-        except Exception as e:
-            self.logger.error("Could no retrieve data from Sofascore: {}".format(e))
+        except requests.exceptions.RequestException as ex:
+            self.logger.error("Could no retrieve data from Sofascore: {}".format(ex))
+            return {}
+        except ValueError as ex:
+            self.logger.error(ex)
+            return {}
 
     def get_date_data(self, date):
         """ get data from given date
@@ -41,8 +48,10 @@ class SofaScore:
         :param date: date string: "2019-09-22"
         :return: json dict
         """
+
         # create correct url
         date_url = self.date_url.format(date=date)
+
         return self.__request_api(url=date_url)
 
     def get_match_data(self, match_id):
@@ -51,8 +60,10 @@ class SofaScore:
         :param match_id: number for a specific match
         :return: json dict
         """
+
         # create correct url
         match_url = self.event_url.format(event_id=match_id)
+
         return self.__request_api(url=match_url)
 
     def get_lineups_match(self, match_id):
@@ -63,6 +74,7 @@ class SofaScore:
         """
         # create correct url
         lineups_url = self.lineups_url.format(event_id=match_id)
+
         return self.__request_api(url=lineups_url)
 
     def get_player_stats(self, match_id, player_id):
@@ -74,6 +86,7 @@ class SofaScore:
         """
         # create correct url
         player_stats_url = self.player_stats_url.format(event_id=match_id, player_id=player_id)
+
         return self.__request_api(url=player_stats_url)
 
     def get_season(self, season_id):
@@ -83,12 +96,14 @@ class SofaScore:
         :return: json dict
         """
         season_url = self.season_url.format(season_id=season_id)
+
         return self.__request_api(url=season_url)
 
 
 if __name__ == '__main__':
     sc = SofaScore()
+
     #print(sc.get_lineups_match(8272007))
-    print(sc.get_season(season_id=23538))
+    #print(sc.get_season(season_id=23538))
     #print(sc.parse_lineups_event(event_id=8271996))
 
