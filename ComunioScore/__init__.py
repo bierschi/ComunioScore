@@ -8,10 +8,11 @@ __license__ = "MIT"
 import os
 from ComunioScore.dbhandler import DBHandler
 from ComunioScore.comunio import Comunio
-from ComunioScore.dbagent import DBAgent
 from ComunioScore.api import APIHandler
 from ComunioScore.comuniodb import ComunioDB
 from ComunioScore.sofascoredb import SofascoreDB
+#from ComunioScore.scheduler import Scheduler
+#from ComunioScore.matchscheduler import MatchScheduler
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 

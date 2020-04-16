@@ -99,6 +99,7 @@ class DBHandler:
                                        Column(name="awayTeam", type="text"),
                                        Column(name="homeScore", type="text"),
                                        Column(name="awayScore", type="text"),
+                                       Column(name="season", type="text"),
                                        schema=self.comunioscore_schema))
 
 

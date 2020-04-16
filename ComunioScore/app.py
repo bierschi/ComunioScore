@@ -8,11 +8,12 @@ from ComunioScore import APIHandler, ComunioDB, SofascoreDB
 #from ComunioScore.livedata import LiveDataProvider
 from ComunioScore.utils import Logger
 from ComunioScore import __version__
-
+from ComunioScore.livedata import LiveData
+from ComunioScore.matchscheduler import MatchScheduler
 
 class ComunioScore:
 
-    def __init__(self, name, comunio_user, comunio_pass, token, **dbparams):
+    def __init__(self, name, comunio_user, comunio_pass, token, season_date, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioScore')
 
@@ -20,6 +21,7 @@ class ComunioScore:
         self.comunio_user = comunio_user
         self.comunio_pass = comunio_pass
         self.token = token
+        self.season_date = season_date
 
         # defines the api handler methods
         self.api = APIHandler()
@@ -29,11 +31,14 @@ class ComunioScore:
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
         # create ComunioDB instance
-        comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
-        comuniodb.start()
+        self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
+        self.comuniodb.start()
 
+        self.matchscheduler = MatchScheduler()
+        self.livedata = LiveData()
+        self.matchscheduler.register_livedata_event_handler(func=self.livedata.fetch)
         # create SofascoreDB instance
-        sofascoredb = SofascoreDB(**dbparams)
+        sofascoredb = SofascoreDB(season_date=self.season_date, **dbparams)
         sofascoredb.start()
 
         # provide livedata
@@ -124,6 +129,7 @@ def main():
 
             # telegram section
             token = config.get('telegram', 'token')
+            season_date = config.get('season', 'date')
 
         except (NoOptionError, NoSectionError) as ex:
             print(ex)
@@ -159,7 +165,7 @@ def main():
     logger.info("Start application ComunioScore")
 
     # create application instance
-    cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token, **dbparams)
+    cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token, season_date=season_date, **dbparams)
 
     # run the application
     cs.run(host=host, port=port)
