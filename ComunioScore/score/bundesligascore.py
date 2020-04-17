@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from ComunioScore.score.sofascore import SofaScore
 
 
@@ -9,6 +10,10 @@ class BundesligaScore(SofaScore):
             buli = BundesligaScore()
             buli.season_data()
     """
+    season_name = None  # Bundesliga 19/20
+    season_year = None  # 19/20
+    season_id   = None  # 23583
+
     def __init__(self, season_date):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class BundesligaScore')
@@ -17,11 +22,11 @@ class BundesligaScore(SofaScore):
         super().__init__()
 
         self.season_date = season_date
-        self.season_name = None  # Bundesliga 19/20
-        self.season_year = None  # 19/20
-        self.season_id   = None  # 23583
 
-        self.__set_current_season()
+        if BundesligaScore.season_name is None:
+            self.__set_current_season()
+        else:
+            self.logger.info("Season data already set!")
 
         self.matchday_data_list = None
 
@@ -31,20 +36,25 @@ class BundesligaScore(SofaScore):
         """
 
         date = self.season_date.split('-')
-        date_day = int(date[2])
-        date_month = date[1]
-        date_year = date[0]
+        if len(date) > 2:
+            date_day = int(date[2])
+            date_month = date[1]
+            date_year = date[0]
 
-        for i in range(0, 7):
-            if (date_day + i) < 10:
-                query_date_day = date_day + i
-                query_date_day = "0" + str(query_date_day)
-            else:
-                query_date_day = str(date_day + i)
+            for i in range(0, 7):
+                if (date_day + i) < 10:
+                    query_date_day = date_day + i
+                    query_date_day = "0" + str(query_date_day)
+                else:
+                    query_date_day = str(date_day + i)
 
-            if self.__get_current_season_data(date="{}-{}-{}".format(date_year, date_month, query_date_day)):
-                self.logger.info("Set current season data to {}".format(self.season_name))
-                break
+                if self.__get_current_season_data(date="{}-{}-{}".format(date_year, date_month, query_date_day)):
+                    self.logger.info("Set current season data to {}".format(self.season_name))
+                    break
+                else:
+                    sleep(1)
+        else:
+            self.logger.error("Could not parse season date: {}".format(self.season_date))
 
     def __get_current_season_data(self, date):
         """ requests the current season data from sofascore with given date
@@ -61,9 +71,9 @@ class BundesligaScore(SofaScore):
                 if tournaments['tournament']['name'] == 'Bundesliga':
                     # German bundesliga only
                     if tournaments['category']['name'] == 'Germany':
-                        self.season_name = tournaments['season']['name']
-                        self.season_year = tournaments['season']['year']
-                        self.season_id   = tournaments['season']['id']
+                        BundesligaScore.season_name = tournaments['season']['name']
+                        BundesligaScore.season_year = tournaments['season']['year']
+                        BundesligaScore.season_id   = tournaments['season']['id']
                         return True
                     else:
                         pass
