@@ -1,5 +1,6 @@
 import logging
 import requests
+from ComunioScore.exceptions import SofascoreRequestError
 
 
 class SofaScore:
@@ -31,8 +32,12 @@ class SofaScore:
         :return: json dict
         """
         try:
-            json_dict = requests.get(url, headers=self.headers).json()
+            resp = requests.get(url, headers=self.headers)
+            status_code = resp.status_code
+            if status_code == 403:
+                raise SofascoreRequestError("Could not load data from Sofascore API")
 
+            json_dict = resp.json()
             return json_dict
 
         except requests.exceptions.RequestException as ex:

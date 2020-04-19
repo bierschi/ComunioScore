@@ -1,6 +1,7 @@
 import logging
 from time import sleep
 from ComunioScore.score.sofascore import SofaScore
+from ComunioScore.exceptions import SofascoreRequestError
 
 
 class BundesligaScore(SofaScore):
@@ -23,12 +24,18 @@ class BundesligaScore(SofaScore):
 
         self.season_date = season_date
 
+        self.__check_season_data()
+
+        self.matchday_data_list = None
+
+    def __check_season_data(self):
+        """ checks if season data are set
+
+        """
         if BundesligaScore.season_name is None:
             self.__set_current_season()
         else:
             self.logger.info("Season data already set!")
-
-        self.matchday_data_list = None
 
     def __set_current_season(self):
         """ sets the current season data
@@ -62,7 +69,11 @@ class BundesligaScore(SofaScore):
         :return: True if Bundesliga season was found, else False
         """
 
-        season_data = self.get_date_data(date=date)
+        try:
+            season_data = self.get_date_data(date=date)
+        except SofascoreRequestError as ex:
+            self.logger.error(ex)
+            return False
 
         if 'sportItem' in season_data:
             for tournaments in season_data['sportItem']['tournaments']:
@@ -169,26 +180,38 @@ class BundesligaScore(SofaScore):
         """
 
         season_list = list()
+        try:
+            if BundesligaScore.season_id:
+                season_json = self.get_season(season_id=BundesligaScore.season_id)
+            else:
+                self.logger.error("Season id is not set. Could not load season data!")
+                return season_list
+        except SofascoreRequestError as ex:
+            self.logger.error(ex)
+            return season_list
 
-        season_json = self.get_season(season_id=self.season_id)
-        for tournament in season_json['tournaments']:
-            for event in tournament['events']:
-                season_dict = dict()
-                season_dict['matchDay']       = event['roundInfo']['round']
-                season_dict['type']           = event['status']['type']
-                season_dict['matchId']        = event['id']
-                season_dict['startTimestamp'] = event['startTimestamp']
-                season_dict['homeTeam']       = event['homeTeam']['name']
-                season_dict['awayTeam']       = event['awayTeam']['name']
-                if event['status']['type'] == 'finished':
-                    season_dict['homeScore'] = event['homeScore']['normaltime']
-                    season_dict['awayScore'] = event['awayScore']['normaltime']
-                else:
-                    season_dict['homeScore'] = '-'
-                    season_dict['awayScore'] = '-'
-                season_list.append(season_dict)
+        if 'tournaments' in season_json:
+            for tournament in season_json['tournaments']:
+                for event in tournament['events']:
+                    season_dict = dict()
+                    season_dict['matchDay']       = event['roundInfo']['round']
+                    season_dict['type']           = event['status']['type']
+                    season_dict['matchId']        = event['id']
+                    season_dict['startTimestamp'] = event['startTimestamp']
+                    season_dict['homeTeam']       = event['homeTeam']['name']
+                    season_dict['awayTeam']       = event['awayTeam']['name']
+                    if event['status']['type'] == 'finished':
+                        season_dict['homeScore'] = event['homeScore']['normaltime']
+                        season_dict['awayScore'] = event['awayScore']['normaltime']
+                    else:
+                        season_dict['homeScore'] = '-'
+                        season_dict['awayScore'] = '-'
+                    season_list.append(season_dict)
 
-        return season_list
+            return season_list
+        else:
+            self.logger.error("KeyError: 'tournaments' not in season_data")
+            return season_list
 
     def is_finished(self, matchid):
         """ checks if a match has finished

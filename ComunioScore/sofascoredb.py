@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_frequence=21600, **dbparams):
+    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=30, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -24,11 +24,19 @@ class SofascoreDB(DBHandler, Thread):
         DBHandler.__init__(self, **dbparams)
         Thread.__init__(self)
 
-        self.update_frequence = update_frequence
+        # attributes for the update frequence
+        self.update_season_frequence = update_season_frequence        # 21600 seconds (6h)
+        self.query_match_data_frequence = query_match_data_frequence  # 7200 seconds (2h)
+
         self.season_date = season_date
         self.running = True
-        self.update_season_counter = 0
+
+        # event handler
         self.matchscheduler_event_handler = None
+
+        # counters set to zero
+        self.update_season_counter = 0
+        self.query_match_data_counter = 0
 
         # create BundesligaScore instance
         self.bundesliga = BundesligaScore(season_date=self.season_date)
@@ -42,11 +50,14 @@ class SofascoreDB(DBHandler, Thread):
         self.insert_season()
 
         while self.running:
-            sleep(300)
-            self.update_season_counter += 2
-            self.query_match_data()
+            sleep(1)
+            self.update_season_counter += 1
+            self.query_match_data_counter += 1
 
-            if self.update_season_counter > self.update_frequence:
+            if self.query_match_data_counter > self.query_match_data_frequence:
+                self.query_match_data()
+                self.query_match_data_counter = 0
+            if self.update_season_counter > self.update_season_frequence:
                 self.update_season()
                 self.update_season_counter = 0
 
@@ -136,20 +147,22 @@ class SofascoreDB(DBHandler, Thread):
             next_match_day = last_match_day + 1
 
         match_sql = "select * from {}.{} where match_day=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
-
+        next_match_day = 25
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
         if len(match_day_data) > 9:
             self.logger.error("length of match day data is greater than 9!!")
         else:
             if self.matchscheduler_event_handler:
-                for match in match_day_data:
+                for (i,match) in enumerate(match_day_data):
                     # TODO Uncomment and change 'postponed' with 'notstarted'
                     #if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
                     #    self.logger.error("Not registering match day {}: {} vs. {} due to {}".format(match[0], match[5], match[6], match[1]))
 
-                    if match[1] == 'postponed':  # notstarted is the normal match type for new events
+                    if match[1] == 'finished':  # notstarted is the normal match type for new events
                         self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
+                        if i < 1:
+                            break
                     else:
-                        self.logger.error("Could not register new event for match day {}: {} vs. {}".format(match[0], match[5], match[6]))
+                        self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
             else:
                 self.logger.error("No matchscheduler event handler registered!!")

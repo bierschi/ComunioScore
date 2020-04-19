@@ -35,7 +35,7 @@ class ComunioScore:
         self.comuniodb.start()
 
         # create LiveData instance
-        self.livedata = LiveData(season_date=self.season_date, **dbparams)
+        self.livedata = LiveData(season_date=self.season_date, token=self.token, **dbparams)
 
         # create MatchScheduler instance
         self.matchscheduler = MatchScheduler()

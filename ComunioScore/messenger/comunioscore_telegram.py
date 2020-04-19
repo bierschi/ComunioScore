@@ -1,19 +1,20 @@
 import logging
-import configparser
 from telegram.ext import Updater, CommandHandler
 from telegram.bot import Bot
-from ComunioScore import ROOT_DIR
-
-config = configparser.ConfigParser()
-config.read(ROOT_DIR + '/config/cfg.ini')
-token = config.get('telegram', 'token')
+from telegram.parsemode import ParseMode
 
 
 class ComunioScoreTelegram:
+    """ class ComunioScoreTelegram to send updates to the Telegram group
 
+    USAGE:
+            cstelegram = ComunioScoreTelegram()
+            cstelegram.new_msg()
+
+    """
     def __init__(self, token):
-        self.logger = logging.getLogger('ComunioScoreApp')
-        self.logger.info('create class ComunioScoreTelegram')
+        self.logger = logging.getLogger('ComunioScore')
+        self.logger.info('Create class ComunioScoreTelegram')
 
         self.token = token
         self.updater = Updater(token=self.token)
@@ -22,8 +23,15 @@ class ComunioScoreTelegram:
         self.bot = Bot(token=self.token)
         self.comunioscore_chatid = -394160563
 
-    def __del__(self):
-        pass
+        self.user_id = {
+            'bierschi': 755923632,
+        }
+
+        # handler to request the current points per user
+        self.add_handler(command="points", handler=self.get_current_points)
+
+        # handler to update the msg update rate per user
+        self.add_handler(command="msg_rate", handler=self.update_msg_rate)
 
     def run(self):
         """ runs the telegram updater
@@ -40,32 +48,46 @@ class ComunioScoreTelegram:
         """
         self.dp.add_handler(handler=CommandHandler(command=command, callback=handler))
 
-    def send_msg(self, bot, update):
+    def new_msg(self, text):
+        """ new text message for the bot
+
+        """
+        self.logger.info("Send new message to comunioscore group: {}".format(text))
+        self.bot.sendMessage(chat_id=self.comunioscore_chatid, text=text, parse_mode=ParseMode.MARKDOWN)
+
+    def get_current_points(self, bot, update):
         """
 
         :return:
         """
         chat_id = update.message.chat_id
-        print(chat_id)
-        bot.send_message(chat_id=chat_id, text="hallo")
+        user_id = update.effective_user.id
+        self.logger.info("Userid: {} requests the current points".format(user_id))
 
-    def new_msg(self, text):
-        """ new text message for the bot
+        point_msg = "*User1*: 2\n*User2*: 5"
+        bot.send_message(chat_id=chat_id, text=point_msg, parse_mode=ParseMode.MARKDOWN)
 
-        """
-        self.logger.info("send new message")
-        self.bot.sendMessage(chat_id=self.comunioscore_chatid, text=text)
-
-    def new_photo(self):
+    def update_msg_rate(self, bot, update):
         """
 
         :return:
         """
-        self.bot.sendPhoto(chat_id=self.comunioscore_chatid)
+        chat_id = update.message.chat_id
+        user_id = update.effective_user.id
+        self.logger.info("Userid: {} updates the msg rate".format(user_id))
+
+        bot.send_message(chat_id=chat_id, text="set new msg rate to", parse_mode=ParseMode.MARKDOWN)
+
+    def map_comunio_user_with_user_id(self, comunio_user, user_id):
+        """
+
+        :param comunio_user:
+        :param user_id:
+        :return:
+        """
         pass
 
 if __name__ == '__main__':
-    tele = ComunioScoreTelegram(token=token)
-    #tele.add_handler('start', tele.send_msg)
-    tele.new_msg(text="was geht")
+    tele = ComunioScoreTelegram(token="")
+    #tele.new_msg(text="was geht")
     tele.run()

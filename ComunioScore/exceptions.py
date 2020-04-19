@@ -18,3 +18,8 @@ class DBInserterError(Exception):
 class DBIntegrityError(Exception):
     """DBIntegrityError"""
     pass
+
+
+class SofascoreRequestError(Exception):
+    """SofascoreRequestError"""
+    pass
