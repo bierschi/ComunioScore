@@ -52,7 +52,7 @@ class ComunioScoreTelegram:
         """ new text message for the bot
 
         """
-        self.logger.info("Send new message to comunioscore group: {}".format(text))
+        self.logger.info("Send new message to comunioscore group")
         self.bot.sendMessage(chat_id=self.comunioscore_chatid, text=text, parse_mode=ParseMode.MARKDOWN)
 
     def get_current_points(self, bot, update):

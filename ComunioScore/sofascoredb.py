@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=30, **dbparams):
+    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=300, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -159,9 +159,9 @@ class SofascoreDB(DBHandler, Thread):
                     #    self.logger.error("Not registering match day {}: {} vs. {} due to {}".format(match[0], match[5], match[6], match[1]))
 
                     if match[1] == 'finished':  # notstarted is the normal match type for new events
-                        self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
-                        if i < 1:
-                            break
+                        if i < 2:
+                            self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
+                            #break
                     else:
                         self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
             else:
