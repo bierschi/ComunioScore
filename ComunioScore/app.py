@@ -5,11 +5,11 @@ from configparser import NoOptionError, NoSectionError
 
 from ComunioScore.routes import Router
 from ComunioScore import APIHandler, ComunioDB, SofascoreDB
-#from ComunioScore.livedata import LiveDataProvider
 from ComunioScore.utils import Logger
 from ComunioScore import __version__
 from ComunioScore.livedata import LiveData
 from ComunioScore.matchscheduler import MatchScheduler
+
 
 class ComunioScore:
 
@@ -34,16 +34,17 @@ class ComunioScore:
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
         self.comuniodb.start()
 
-        self.matchscheduler = MatchScheduler()
-        self.livedata = LiveData()
-        self.matchscheduler.register_livedata_event_handler(func=self.livedata.fetch)
-        # create SofascoreDB instance
-        sofascoredb = SofascoreDB(season_date=self.season_date, **dbparams)
-        sofascoredb.start()
+        # create LiveData instance
+        self.livedata = LiveData(season_date=self.season_date, token=self.token, **dbparams)
 
-        # provide livedata
-        #live = LiveDataProvider()
-        #live.start()
+        # create MatchScheduler instance
+        self.matchscheduler = MatchScheduler()
+        self.matchscheduler.register_livedata_event_handler(func=self.livedata.fetch)
+
+        # create SofascoreDB instance
+        self.sofascoredb = SofascoreDB(season_date=self.season_date, **dbparams)
+        self.sofascoredb.register_matchscheduler_event_handler(func=self.matchscheduler.new_event)
+        self.sofascoredb.start()
 
     def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port
@@ -129,7 +130,7 @@ def main():
 
             # telegram section
             token = config.get('telegram', 'token')
-            season_date = config.get('season', 'date')
+            season_date = config.get('season', 'startdate')
 
         except (NoOptionError, NoSectionError) as ex:
             print(ex)

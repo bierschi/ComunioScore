@@ -1,5 +1,6 @@
 import logging
-from ComunioScore.scheduler import Scheduler
+import datetime
+from ComunioScore import Scheduler
 
 
 class MatchScheduler:
@@ -16,9 +17,9 @@ class MatchScheduler:
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class MatchScheduler')
 
-        # create the scheduler thread
+        # create the scheduler instance
         self.scheduler = Scheduler()
-        self.scheduler.start()
+        self.new_events_allowed = True
 
     @classmethod
     def register_livedata_event_handler(cls, func):
@@ -33,10 +34,22 @@ class MatchScheduler:
 
         """
 
-        self.logger.info("Register new match event for match day {} and match id {}".format(match_day, match_id))
-
         if self.livedata_event_handler:
-            self.scheduler.register_events(event_ts, self.livedata_event_handler, 1, match_day, match_id, home_team, away_team)
+
+            current_tasks_len = len(self.scheduler.get_tasks())
+            if current_tasks_len == 9:
+                self.new_events_allowed = False
+            elif current_tasks_len < 9 and self.scheduler.is_tasks_empty():
+                self.new_events_allowed = True
+
+            if current_tasks_len < 10 and self.new_events_allowed:
+                self.logger.info("Register new event {} for match day {}: {} vs. {}".format(match_id, match_day,
+                                                                                            home_team, away_team))
+                event_ts = datetime.datetime.fromtimestamp(int(event_ts))
+                self.scheduler.schedule(self.livedata_event_handler, event_ts, match_day, match_id, home_team, away_team)
+            else:
+                #self.logger.error("9 match events are scheduled already. Wait..")
+                pass
         else:
             self.logger.error("No livedata_event_handler configured!")
 

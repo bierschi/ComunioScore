@@ -77,7 +77,7 @@ class ComunioDB(DBHandler, Thread):
         communityname = self.comunio.get_community_name()
 
         for player in player_standings:
-            comuniouser.append((player['id'], player['name'], communityname, player['points'], player['teamValue']))
+            comuniouser.append((player['id'], player['name'].strip(), communityname, player['points'], player['teamValue']))
 
         sql = "insert into {}.{} (userid, username, community, points, teamvalue) values(%s, %s, %s, %s, %s)"\
               .format(self.comunioscore_schema, self.comunioscore_table_user)

@@ -1,0 +1,1 @@
+from ComunioScore.messenger.comunioscore_telegram import ComunioScoreTelegram

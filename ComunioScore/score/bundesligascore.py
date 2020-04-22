@@ -1,5 +1,7 @@
 import logging
+from time import sleep
 from ComunioScore.score.sofascore import SofaScore
+from ComunioScore.exceptions import SofascoreRequestError
 
 
 class BundesligaScore(SofaScore):
@@ -9,6 +11,10 @@ class BundesligaScore(SofaScore):
             buli = BundesligaScore()
             buli.season_data()
     """
+    season_name = None  # Bundesliga 19/20
+    season_year = None  # 19/20
+    season_id   = None  # 23583
+
     def __init__(self, season_date):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class BundesligaScore')
@@ -17,13 +23,19 @@ class BundesligaScore(SofaScore):
         super().__init__()
 
         self.season_date = season_date
-        self.season_name = None  # Bundesliga 19/20
-        self.season_year = None  # 19/20
-        self.season_id   = None  # 23583
 
-        self.__set_current_season()
+        self.__check_season_data()
 
         self.matchday_data_list = None
+
+    def __check_season_data(self):
+        """ checks if season data are set
+
+        """
+        if BundesligaScore.season_name is None:
+            self.__set_current_season()
+        else:
+            self.logger.info("Season data already set!")
 
     def __set_current_season(self):
         """ sets the current season data
@@ -31,20 +43,25 @@ class BundesligaScore(SofaScore):
         """
 
         date = self.season_date.split('-')
-        date_day = int(date[2])
-        date_month = date[1]
-        date_year = date[0]
+        if len(date) > 2:
+            date_day = int(date[2])
+            date_month = date[1]
+            date_year = date[0]
 
-        for i in range(0, 7):
-            if (date_day + i) < 10:
-                query_date_day = date_day + i
-                query_date_day = "0" + str(query_date_day)
-            else:
-                query_date_day = str(date_day + i)
+            for i in range(0, 7):
+                if (date_day + i) < 10:
+                    query_date_day = date_day + i
+                    query_date_day = "0" + str(query_date_day)
+                else:
+                    query_date_day = str(date_day + i)
 
-            if self.__get_current_season_data(date="{}-{}-{}".format(date_year, date_month, query_date_day)):
-                self.logger.info("Set current season data to {}".format(self.season_name))
-                break
+                if self.__get_current_season_data(date="{}-{}-{}".format(date_year, date_month, query_date_day)):
+                    self.logger.info("Set current season data to {}".format(self.season_name))
+                    break
+                else:
+                    sleep(1)
+        else:
+            self.logger.error("Could not parse season date: {}".format(self.season_date))
 
     def __get_current_season_data(self, date):
         """ requests the current season data from sofascore with given date
@@ -52,7 +69,11 @@ class BundesligaScore(SofaScore):
         :return: True if Bundesliga season was found, else False
         """
 
-        season_data = self.get_date_data(date=date)
+        try:
+            season_data = self.get_date_data(date=date)
+        except SofascoreRequestError as ex:
+            self.logger.error(ex)
+            return False
 
         if 'sportItem' in season_data:
             for tournaments in season_data['sportItem']['tournaments']:
@@ -61,9 +82,9 @@ class BundesligaScore(SofaScore):
                 if tournaments['tournament']['name'] == 'Bundesliga':
                     # German bundesliga only
                     if tournaments['category']['name'] == 'Germany':
-                        self.season_name = tournaments['season']['name']
-                        self.season_year = tournaments['season']['year']
-                        self.season_id   = tournaments['season']['id']
+                        BundesligaScore.season_name = tournaments['season']['name']
+                        BundesligaScore.season_year = tournaments['season']['year']
+                        BundesligaScore.season_id   = tournaments['season']['id']
                         return True
                     else:
                         pass
@@ -159,26 +180,38 @@ class BundesligaScore(SofaScore):
         """
 
         season_list = list()
+        try:
+            if BundesligaScore.season_id:
+                season_json = self.get_season(season_id=BundesligaScore.season_id)
+            else:
+                self.logger.error("Season id is not set. Could not load season data!")
+                return season_list
+        except SofascoreRequestError as ex:
+            self.logger.error(ex)
+            return season_list
 
-        season_json = self.get_season(season_id=self.season_id)
-        for tournament in season_json['tournaments']:
-            for event in tournament['events']:
-                season_dict = dict()
-                season_dict['matchDay']       = event['roundInfo']['round']
-                season_dict['type']           = event['status']['type']
-                season_dict['matchId']        = event['id']
-                season_dict['startTimestamp'] = event['startTimestamp']
-                season_dict['homeTeam']       = event['homeTeam']['name']
-                season_dict['awayTeam']       = event['awayTeam']['name']
-                if event['status']['type'] == 'finished':
-                    season_dict['homeScore'] = event['homeScore']['normaltime']
-                    season_dict['awayScore'] = event['awayScore']['normaltime']
-                else:
-                    season_dict['homeScore'] = '-'
-                    season_dict['awayScore'] = '-'
-                season_list.append(season_dict)
+        if 'tournaments' in season_json:
+            for tournament in season_json['tournaments']:
+                for event in tournament['events']:
+                    season_dict = dict()
+                    season_dict['matchDay']       = event['roundInfo']['round']
+                    season_dict['type']           = event['status']['type']
+                    season_dict['matchId']        = event['id']
+                    season_dict['startTimestamp'] = event['startTimestamp']
+                    season_dict['homeTeam']       = event['homeTeam']['name']
+                    season_dict['awayTeam']       = event['awayTeam']['name']
+                    if event['status']['type'] == 'finished':
+                        season_dict['homeScore'] = event['homeScore']['normaltime']
+                        season_dict['awayScore'] = event['awayScore']['normaltime']
+                    else:
+                        season_dict['homeScore'] = '-'
+                        season_dict['awayScore'] = '-'
+                    season_list.append(season_dict)
 
-        return season_list
+            return season_list
+        else:
+            self.logger.error("KeyError: 'tournaments' not in season_data")
+            return season_list
 
     def is_finished(self, matchid):
         """ checks if a match has finished
