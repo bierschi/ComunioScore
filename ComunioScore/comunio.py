@@ -281,6 +281,7 @@ class Comunio:
                 player_dict['name']     = player['name']
                 player_dict['club']     = player['club']['name']
                 player_dict['position'] = player['position']
+                player_dict['linedup']  = player['linedup']
                 squad_list.append(player_dict)
             user_data.update({'squad': squad_list})
             comunio_user_data.append(user_data)
@@ -291,7 +292,8 @@ class Comunio:
 if __name__ == '__main__':
     comunio = Comunio()
     if comunio.login(username='', password=''):
-        print(comunio.get_comunio_user_data())
+        print(comunio.get_auth_token())
+        print(comunio.get_squad(userid=13065521))
 
 
 

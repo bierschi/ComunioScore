@@ -2,7 +2,7 @@ import logging
 
 from ComunioScore.db import DBConnector, DBInserter, DBFetcher
 from ComunioScore.db import DBCreator, Schema, Table, Column
-from ComunioScore.exceptions import DBConnectorError
+from ComunioScore.exceptions import DBConnectorError, DBInserterError
 
 
 class DBHandler:
@@ -35,6 +35,7 @@ class DBHandler:
                 self.comunioscore_table_user = "user"
                 self.comunioscore_table_squad = "squad"
                 self.comunioscore_table_season = "season"
+                self.comunioscore_table_points = "points"
 
                 # at start create all necessary tables for comunioscore
                 self.__create_tables_for_communioscore()
@@ -86,6 +87,7 @@ class DBHandler:
                                      Column(name="playername", type="text", prim_key=True),
                                      Column(name="playerposition", type="text"),
                                      Column(name="club", type="text"),
+                                     Column(name="linedup", type="text"),
                                      schema=self.comunioscore_schema))
 
         self.logger.info("Create Table {}".format(self.comunioscore_table_season))
@@ -102,5 +104,27 @@ class DBHandler:
                                        Column(name="season", type="text"),
                                        schema=self.comunioscore_schema))
 
+        self.logger.info("Create Table {}".format(self.comunioscore_table_points))
+        self.dbcreator.build(obj=Table(self.comunioscore_table_points,
+                                       Column(name="userid", type="bigint"),
+                                       Column(name="username", type="text"),
+                                       Column(name="match_id", type="bigint"),
+                                       Column(name="match_day", type="Integer"),
+                                       Column(name="homeTeam", type="text"),
+                                       Column(name="awayTeam", type="text"),
+                                       Column(name="points", type="Integer"),
+                                       schema=self.comunioscore_schema))
+
+    def update_points_in_database(self, userid, match_id, match_day, points):
+        """ updates the points per match in database
+
+        """
+        points_sql = "update {}.{} set points = %s where userid = %s and match_day = %s and match_id = %s".format(
+                      self.comunioscore_schema, self.comunioscore_table_points)
+
+        try:
+            self.dbinserter.row(sql=points_sql, data=(points, userid, match_day, match_id))
+        except DBInserterError as ex:
+            self.logger.error(ex)
 
 

@@ -9,7 +9,7 @@ class PointCalculator:
     """
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class PointCalculator')
+        self.logger.info('Create class PointCalculator')
 
     @staticmethod
     def get_points_from_rating(rating):

@@ -36,6 +36,7 @@ class ComunioScore:
 
         # create LiveData instance
         self.livedata = LiveData(season_date=self.season_date, token=self.token, **dbparams)
+        self.livedata.register_update_squad_event_handler(func=self.comuniodb.update_linedup_squad)
 
         # create MatchScheduler instance
         self.matchscheduler = MatchScheduler()
@@ -44,6 +45,7 @@ class ComunioScore:
         # create SofascoreDB instance
         self.sofascoredb = SofascoreDB(season_date=self.season_date, **dbparams)
         self.sofascoredb.register_matchscheduler_event_handler(func=self.matchscheduler.new_event)
+        self.sofascoredb.register_comunio_user_data(func=self.comuniodb.get_comunio_user_data)
         self.sofascoredb.start()
 
     def run(self, host='0.0.0.0', port=None, debug=None):
