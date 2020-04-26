@@ -76,8 +76,8 @@ class LiveData(DBHandler):
         self.update_linedup_squad()
 
         # while not finished
-        for i in range(0, 3):
-            sleep(20)
+        for i in range(0, 1):
+            sleep(10)
             # get all comunio players of interest for sofascore rating
             players_of_interest_for_match = self.set_comunio_players_of_interest_for_match(home_team=home_team, away_team=away_team)
 
@@ -96,7 +96,7 @@ class LiveData(DBHandler):
             self.logger.info("Calculate points for match day {}: {} vs. {}".format(match_day, home_team, away_team))
             self.calculate_points_per_match(livedata=livedata, match_id=match_id, match_day=match_day)
 
-            sleep(random.randint(10, 15))
+            sleep(random.randint(15, 40))
 
         # 1. get players from home team and away team of given match id
         # 2. check squad from each comunio user if a player in home or away team
@@ -142,6 +142,9 @@ class LiveData(DBHandler):
             # get current squad (player,club) with userid from database
             squad = self.dbfetcher.all(sql=self.squad_sql, data=(user_id,))
 
+            if len(squad) < 11:
+                self.logger.error("Length of linedup comunio squad from {} is less as 11".format(user_name))
+
             # player list of interest for one comunio user
             player_list_per_user = list()
 
@@ -171,12 +174,12 @@ class LiveData(DBHandler):
         :param match_lineup: match lineup
 
         :return: list with live data
-        [{'user': 'Shaggy', 'userid': 13065521, 'squad': [{'name': 'Jorge Mere', 'rating': '7.6', 'position': 'defender', 'points': 6}]}, ...]
+        [{'user': 'Shaggy', 'userid': 13065521, 'squad': [{'name': 'Jorge Mere', 'rating': '7.6', 'position': 'defender', 'points': 6, 'incidents': [{'type': 'goal', 'class': 'regulargoal', 'player': 'Jorge Mere'}]}]}, ...]
         """
 
         # data with all comunio user and related players
         livedata = list()
-
+        print(match_lineup)
         # iterate over all comunio users
         for comuniouser in players_of_interest:
             user_name = comuniouser['user']
@@ -209,12 +212,14 @@ class LiveData(DBHandler):
                             if comunioplayername_forename == homeplayer_forename[:len(comunioplayername_forename)]:
                                 user_squad_dict['squad'].append(self.get_player_data(playername=homeplayer_name,
                                                                                      playerrating=homeplayer['player_rating'],
-                                                                                     playerposition=comunioplayerposition))
+                                                                                     playerposition=comunioplayerposition,
+                                                                                     incidents=match_lineup['homeTeamIncidents']))
                                 break
                         else:
                             user_squad_dict['squad'].append(self.get_player_data(playername=homeplayer_name,
                                                                                  playerrating=homeplayer['player_rating'],
-                                                                                 playerposition=comunioplayerposition))
+                                                                                 playerposition=comunioplayerposition,
+                                                                                 incidents=match_lineup['homeTeamIncidents']))
                             break
 
                 # iterate over all awayplayer of away team
@@ -231,36 +236,48 @@ class LiveData(DBHandler):
                             if (comunioplayername_forename == awayplayer_forename[:len(comunioplayername_forename)]):
                                 user_squad_dict['squad'].append(self.get_player_data(playername=awayplayer_name,
                                                                                      playerrating=awayplayer['player_rating'],
-                                                                                     playerposition=comunioplayerposition))
+                                                                                     playerposition=comunioplayerposition,
+                                                                                     incidents=match_lineup['awayTeamIncidents']))
                                 break
                         else:
                             user_squad_dict['squad'].append(self.get_player_data(playername=awayplayer_name,
                                                                                  playerrating=awayplayer['player_rating'],
-                                                                                 playerposition=comunioplayerposition))
+                                                                                 playerposition=comunioplayerposition,
+                                                                                 incidents=match_lineup['awayTeamIncidents']))
                             break
 
             # add user data to list
             livedata.append(user_squad_dict)
-        #print(livedata)
+        print(livedata)
         return livedata
 
-    def get_player_data(self, playername, playerrating, playerposition):
+    def get_player_data(self, playername, playerrating, playerposition, incidents):
         """ get player data dict for livedata
 
         :param playername: player name
         :param playerrating: player rating
+        :param playerposition: player position
 
         :return: dict of player data
         """
         player_data = dict()
 
-        player_data['name'] = playername
+        player_data['name'] = playername # from sofascore
         player_data['rating'] = playerrating
         if playerrating == "–":
             player_data['points'] = playerrating
         else:
             player_data['points'] = self.pointcalculator.get_points_from_rating(rating=float(playerrating))
         player_data['position'] = playerposition
+
+        # check active incidents
+        incidents_list = list()
+        for incident in incidents:
+            # check if given player has an active incident
+            if incident['player'] == playername:
+                # TODO remove player name incident.pop('player')
+                incidents_list.append(incident)
+        player_data['incidents'] = incidents_list
 
         return player_data
 
@@ -298,7 +315,7 @@ class LiveData(DBHandler):
         """
 
         telegram_str = ""
-        match_str = "Player rating for *{}* vs. *{}* \n\n".format(home_team, away_team)
+        match_str = "Points rating for *{}* vs. *{}* \n\n".format(home_team, away_team)
         telegram_str += match_str
         for user in livedata:
             username = user['user']
@@ -308,7 +325,7 @@ class LiveData(DBHandler):
                 telegram_str += "no player in lineup!\n"
             else:
                 for player in squad:
-                    player_str = ''.join("{} (*{}*)=>(*{}*)\n".format(player['name'], player['rating'], player['points']))
+                    player_str = ''.join("{} (*{}*)=>*{}*\n".format(player['name'], player['rating'], player['points']))
                     telegram_str += player_str
 
         return telegram_str
@@ -321,16 +338,41 @@ class LiveData(DBHandler):
         :param match_day: match day
 
         """
-
+        # points for rating, goals (regulargoal, penalty) and offs (YellowRed, Red)
         for user in livedata:
             userid = user['userid']
             squad = user['squad']
-            match_points = 0
+            points_rating = 0
+            points_goals = 0
+            points_offs = 0
+            print("start")
+            print(squad)
+            print(user)
             for player in squad:
-                if player['points'] != '–':
-                    match_points += player['points']
+                # goal points
+                for incident in player['incidents']:
 
+                    if (incident['type'] == 'goal') and (incident['class'] == 'regulargoal'):
+                        goals_p = self.pointcalculator.get_points_for_goal(position=player['position'])
+                        print(goals_p)
+                        if goals_p is not None:
+                            points_goals = points_goals + goals_p
+                        else:
+                            print(goals_p)
+                            print(incident)
+                            #points_goals += self.pointcalculator.get_points_for_goal(position=player['position'].strip())
+                    elif (incident['type'] == 'goal') and (incident['class'] == 'penalty'):
+                        points_goals += self.pointcalculator.get_penalty()
+                    elif (incident['type'] == 'card') and (incident['class'] == 'YellowRed'):
+                        points_offs += self.pointcalculator.get_points_for_offs(off_type='yellow_red')
+                    elif (incident['type'] == 'card') and (incident['class'] == 'Red'):
+                        points_offs += self.pointcalculator.get_points_for_offs(off_type='red')
+                # rating points
+                if player['points'] != '–':
+                    points_rating += player['points']
+            print("Points-> rating: {}, goals: {}, offs: {}".format(points_rating, points_goals, points_offs))
+            break
             #print(match_points)
-            self.update_points_in_database(userid=userid, match_id=match_id, match_day=match_day, points=match_points)
+            self.update_points_in_database(userid=userid, match_id=match_id, match_day=match_day, points_rating=points_rating)
 
 

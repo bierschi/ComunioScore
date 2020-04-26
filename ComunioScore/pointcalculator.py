@@ -70,14 +70,16 @@ class PointCalculator:
         :return: points for the position type
         """
 
-        if position is 'Goalkeeper':
+        if (position == 'Goalkeeper') or (position == 'keeper'):
             return 6
-        elif position is 'Defender':
+        elif (position == 'Defender') or (position == 'defender'):
             return 5
-        elif position is 'Midfielder':
+        elif (position == 'Midfielder') or (position == 'midfielder'):
             return 4
-        elif position is 'Forward':
+        elif (position == 'Forward') or (position == 'striker'):
             return 3
+        else:
+            logging.getLogger('ComunioScore').error("Invalid position {}".format(position))
 
     @staticmethod
     def get_points_for_offs(off_type):
@@ -98,3 +100,7 @@ class PointCalculator:
         :return: points for penalty
         """
         return 3
+
+if __name__ == '__main__':
+    point = PointCalculator()
+    print(point.get_points_for_goal(position='defender'))

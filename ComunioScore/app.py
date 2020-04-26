@@ -12,7 +12,14 @@ from ComunioScore.matchscheduler import MatchScheduler
 
 
 class ComunioScore:
+    """ class ComunioScore to setup all instances for the application
 
+    USAGE:
+            cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token,
+            season_date=season_date, **dbparams)
+            cs.run(host=host, port=port)
+
+    """
     def __init__(self, name, comunio_user, comunio_pass, token, season_date, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioScore')
@@ -32,7 +39,6 @@ class ComunioScore:
 
         # create ComunioDB instance
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
-        self.comuniodb.start()
 
         # create LiveData instance
         self.livedata = LiveData(season_date=self.season_date, token=self.token, **dbparams)
@@ -46,7 +52,6 @@ class ComunioScore:
         self.sofascoredb = SofascoreDB(season_date=self.season_date, **dbparams)
         self.sofascoredb.register_matchscheduler_event_handler(func=self.matchscheduler.new_event)
         self.sofascoredb.register_comunio_user_data(func=self.comuniodb.get_comunio_user_data)
-        self.sofascoredb.start()
 
     def run(self, host='0.0.0.0', port=None, debug=None):
         """ runs the ComunioScore application on given port
@@ -55,6 +60,10 @@ class ComunioScore:
         :param port: port for the webserver
         :param debug: debug mode true or false
         """
+        # start comuniodb run thread
+        self.comuniodb.start()
+        # start sofascoredb run thread
+        self.sofascoredb.start()
         self.logger.info("running application on port: {}".format(port))
         self.router.run(host=host, port=port, debug=debug)
 

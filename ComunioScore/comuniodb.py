@@ -104,7 +104,7 @@ class ComunioDB(DBHandler, Thread):
 
         try:
             for player in self.player_standings:
-                self.dbinserter.row(sql=sql, data=(player['name'], communityname, player['points'], player['teamValue'],
+                self.dbinserter.row(sql=sql, data=(player['name'].strip(), communityname, player['points'], player['teamValue'],
                                                    player['id']))
         except DBInserterError as ex:
             self.logger.error(ex)

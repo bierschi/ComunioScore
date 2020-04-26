@@ -112,18 +112,21 @@ class DBHandler:
                                        Column(name="match_day", type="Integer"),
                                        Column(name="homeTeam", type="text"),
                                        Column(name="awayTeam", type="text"),
-                                       Column(name="points", type="Integer"),
+                                       Column(name="points_rating", type="Integer"),
+                                       Column(name="points_goal", type="Integer"),
+                                       Column(name="points_offs", type="Integer"),
+                                       Column(name="points_penalty", type="Integer"),
                                        schema=self.comunioscore_schema))
 
-    def update_points_in_database(self, userid, match_id, match_day, points):
+    def update_points_in_database(self, userid, match_id, match_day, points_rating):
         """ updates the points per match in database
 
         """
-        points_sql = "update {}.{} set points = %s where userid = %s and match_day = %s and match_id = %s".format(
+        points_sql = "update {}.{} set points_rating = %s where userid = %s and match_day = %s and match_id = %s".format(
                       self.comunioscore_schema, self.comunioscore_table_points)
 
         try:
-            self.dbinserter.row(sql=points_sql, data=(points, userid, match_day, match_id))
+            self.dbinserter.row(sql=points_sql, data=(points_rating, userid, match_day, match_id))
         except DBInserterError as ex:
             self.logger.error(ex)
 
