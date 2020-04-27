@@ -114,20 +114,40 @@ class DBHandler:
                                        Column(name="awayTeam", type="text"),
                                        Column(name="points_rating", type="Integer"),
                                        Column(name="points_goal", type="Integer"),
-                                       Column(name="points_offs", type="Integer"),
-                                       Column(name="points_penalty", type="Integer"),
+                                       Column(name="points_off", type="Integer"),
                                        schema=self.comunioscore_schema))
 
-    def update_points_in_database(self, userid, match_id, match_day, points_rating):
-        """ updates the points per match in database
+    def update_points_in_database(self, userid, match_id, match_day, points_rating, points_goal, points_off):
+        """ updates the points_rating, points_offs and points_goals per match in the database
 
         """
-        points_sql = "update {}.{} set points_rating = %s where userid = %s and match_day = %s and match_id = %s".format(
-                      self.comunioscore_schema, self.comunioscore_table_points)
+        points_sql = "update {}.{} set points_rating = %s, points_goal = %s, points_off = %s where userid = %s " \
+                     "and match_day = %s and match_id = %s".format(self.comunioscore_schema, self.comunioscore_table_points)
 
         try:
-            self.dbinserter.row(sql=points_sql, data=(points_rating, userid, match_day, match_id))
+            self.dbinserter.row(sql=points_sql, data=(points_rating, points_goal, points_off, userid, match_day, match_id))
         except DBInserterError as ex:
             self.logger.error(ex)
 
+    def query_rating_goal_off_points(self, userid, match_day, match_id=None):
+        """ queries points for rating, goal and offs from the points table in the database
 
+        :return: list with data
+        """
+
+        if match_id is None:
+            points_sql = "select points_rating, points_goal, points_off from {}.{} where userid = %s " \
+                             "and match_day = %s".format(self.comunioscore_schema, self.comunioscore_table_points)
+            points_sql_data = (userid, match_day)
+        else:
+            points_sql = "select points_rating, points_goal, points_off from {}.{} where userid = %s and match_day = %s " \
+                         "and match_id = %s".format(self.comunioscore_schema, self.comunioscore_table_points)
+            points_sql_data = (userid, match_day, match_id)
+
+        try:
+            data = self.dbfetcher.all(sql=points_sql, data=points_sql_data)
+        except DBInserterError as ex:
+            self.logger.error(ex)
+            data = []
+
+        return data

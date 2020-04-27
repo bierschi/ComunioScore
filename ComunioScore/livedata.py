@@ -345,34 +345,28 @@ class LiveData(DBHandler):
             points_rating = 0
             points_goals = 0
             points_offs = 0
-            print("start")
-            print(squad)
-            print(user)
             for player in squad:
-                # goal points
                 for incident in player['incidents']:
-
+                    # goal points regular
                     if (incident['type'] == 'goal') and (incident['class'] == 'regulargoal'):
-                        goals_p = self.pointcalculator.get_points_for_goal(position=player['position'])
-                        print(goals_p)
-                        if goals_p is not None:
-                            points_goals = points_goals + goals_p
-                        else:
-                            print(goals_p)
-                            print(incident)
-                            #points_goals += self.pointcalculator.get_points_for_goal(position=player['position'].strip())
+                        points = self.pointcalculator.get_points_for_goal(position=player['position'])
+                        if points is not None:
+                            points_goals += points
+                    # goal points penalty
                     elif (incident['type'] == 'goal') and (incident['class'] == 'penalty'):
                         points_goals += self.pointcalculator.get_penalty()
+                    # yellow red off points
                     elif (incident['type'] == 'card') and (incident['class'] == 'YellowRed'):
                         points_offs += self.pointcalculator.get_points_for_offs(off_type='yellow_red')
+                    # red off points
                     elif (incident['type'] == 'card') and (incident['class'] == 'Red'):
                         points_offs += self.pointcalculator.get_points_for_offs(off_type='red')
                 # rating points
                 if player['points'] != '–':
                     points_rating += player['points']
-            print("Points-> rating: {}, goals: {}, offs: {}".format(points_rating, points_goals, points_offs))
-            break
-            #print(match_points)
-            self.update_points_in_database(userid=userid, match_id=match_id, match_day=match_day, points_rating=points_rating)
+            #print("Points-> rating: {}, goals: {}, offs: {}".format(points_rating, points_goals, points_offs))
+            self.update_points_in_database(userid=userid, match_id=match_id, match_day=match_day,
+                                           points_rating=points_rating, points_goal=points_goals, points_off=points_offs)
 
-
+    def get_points_from_database(self):
+        pass

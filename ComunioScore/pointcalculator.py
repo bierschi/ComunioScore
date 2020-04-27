@@ -61,6 +61,8 @@ class PointCalculator:
             return 11
         elif (rating >= 9.3) and (rating <= 10.0):
             return 12
+        else:
+            logging.getLogger('ComunioScore').error("Invalid rating {}".format(rating))
 
     @staticmethod
     def get_points_for_goal(position):
@@ -88,10 +90,12 @@ class PointCalculator:
         :return: points for the off type
         """
 
-        if off_type is 'yellow_red':
+        if off_type == 'yellow_red':
             return -3
-        elif off_type is 'red':
+        elif off_type == 'red':
             return -6
+        else:
+            logging.getLogger('ComunioScore').error("Invalid off_type {}".format(off_type))
 
     @staticmethod
     def get_penalty():
@@ -101,6 +105,3 @@ class PointCalculator:
         """
         return 3
 
-if __name__ == '__main__':
-    point = PointCalculator()
-    print(point.get_points_for_goal(position='defender'))
