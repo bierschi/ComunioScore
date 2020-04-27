@@ -33,6 +33,8 @@ class ComunioScoreTelegram:
         # handler to update the msg update rate per user
         self.add_handler(command="msg_rate", handler=self.update_msg_rate)
 
+        self.current_points_event_handler = None
+
     def run(self):
         """ runs the telegram updater
 
@@ -48,11 +50,18 @@ class ComunioScoreTelegram:
         """
         self.dp.add_handler(handler=CommandHandler(command=command, callback=handler))
 
+    def register_current_points_event_handler(self, func):
+        """ current points event handler
+
+        :param func: handler function
+        """
+        self.current_points_event_handler = func
+
     def new_msg(self, text):
         """ new text message for the bot
 
         """
-        self.logger.info("Send new message to comunioscore group")
+        #self.logger.info("Send new message to comunioscore group")
         self.bot.sendMessage(chat_id=self.comunioscore_chatid, text=text, parse_mode=ParseMode.MARKDOWN)
 
     def get_current_points(self, bot, update):

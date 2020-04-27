@@ -2,7 +2,7 @@ import logging
 
 from ComunioScore.db import DBConnector, DBInserter, DBFetcher
 from ComunioScore.db import DBCreator, Schema, Table, Column
-from ComunioScore.exceptions import DBConnectorError
+from ComunioScore.exceptions import DBConnectorError, DBInserterError
 
 
 class DBHandler:
@@ -35,6 +35,7 @@ class DBHandler:
                 self.comunioscore_table_user = "user"
                 self.comunioscore_table_squad = "squad"
                 self.comunioscore_table_season = "season"
+                self.comunioscore_table_points = "points"
 
                 # at start create all necessary tables for comunioscore
                 self.__create_tables_for_communioscore()
@@ -86,6 +87,7 @@ class DBHandler:
                                      Column(name="playername", type="text", prim_key=True),
                                      Column(name="playerposition", type="text"),
                                      Column(name="club", type="text"),
+                                     Column(name="linedup", type="text"),
                                      schema=self.comunioscore_schema))
 
         self.logger.info("Create Table {}".format(self.comunioscore_table_season))
@@ -102,5 +104,50 @@ class DBHandler:
                                        Column(name="season", type="text"),
                                        schema=self.comunioscore_schema))
 
+        self.logger.info("Create Table {}".format(self.comunioscore_table_points))
+        self.dbcreator.build(obj=Table(self.comunioscore_table_points,
+                                       Column(name="userid", type="bigint"),
+                                       Column(name="username", type="text"),
+                                       Column(name="match_id", type="bigint"),
+                                       Column(name="match_day", type="Integer"),
+                                       Column(name="homeTeam", type="text"),
+                                       Column(name="awayTeam", type="text"),
+                                       Column(name="points_rating", type="Integer"),
+                                       Column(name="points_goal", type="Integer"),
+                                       Column(name="points_off", type="Integer"),
+                                       schema=self.comunioscore_schema))
 
+    def update_points_in_database(self, userid, match_id, match_day, points_rating, points_goal, points_off):
+        """ updates the points_rating, points_offs and points_goals per match in the database
 
+        """
+        points_sql = "update {}.{} set points_rating = %s, points_goal = %s, points_off = %s where userid = %s " \
+                     "and match_day = %s and match_id = %s".format(self.comunioscore_schema, self.comunioscore_table_points)
+
+        try:
+            self.dbinserter.row(sql=points_sql, data=(points_rating, points_goal, points_off, userid, match_day, match_id))
+        except DBInserterError as ex:
+            self.logger.error(ex)
+
+    def query_rating_goal_off_points(self, userid, match_day, match_id=None):
+        """ queries points for rating, goal and offs from the points table in the database
+
+        :return: list with data
+        """
+
+        if match_id is None:
+            points_sql = "select points_rating, points_goal, points_off from {}.{} where userid = %s " \
+                             "and match_day = %s".format(self.comunioscore_schema, self.comunioscore_table_points)
+            points_sql_data = (userid, match_day)
+        else:
+            points_sql = "select points_rating, points_goal, points_off from {}.{} where userid = %s and match_day = %s " \
+                         "and match_id = %s".format(self.comunioscore_schema, self.comunioscore_table_points)
+            points_sql_data = (userid, match_day, match_id)
+
+        try:
+            data = self.dbfetcher.all(sql=points_sql, data=points_sql_data)
+        except DBInserterError as ex:
+            self.logger.error(ex)
+            data = []
+
+        return data

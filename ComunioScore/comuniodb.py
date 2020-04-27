@@ -33,6 +33,8 @@ class ComunioDB(DBHandler, Thread):
 
         self.running = True
 
+        self.player_standings = None
+
     def run(self) -> None:
         """ run thread for class ComunioDB
 
@@ -50,6 +52,7 @@ class ComunioDB(DBHandler, Thread):
         self.insert_comunio_user()
         self.insert_squad()
 
+        self.logger.info("Start comuniodb run thread!")
         while self.running:
             sleep(self.update_frequence)  # updates data every 6h (21600)
 
@@ -73,10 +76,10 @@ class ComunioDB(DBHandler, Thread):
         self.logger.info("Insert comunio {} data into database".format(self.comunioscore_table_user))
 
         comuniouser = list()
-        player_standings = self.comunio.get_player_standings()
+        self.player_standings = self.comunio.get_player_standings()
         communityname = self.comunio.get_community_name()
 
-        for player in player_standings:
+        for player in self.player_standings:
             comuniouser.append((player['id'], player['name'].strip(), communityname, player['points'], player['teamValue']))
 
         sql = "insert into {}.{} (userid, username, community, points, teamvalue) values(%s, %s, %s, %s, %s)"\
@@ -93,15 +96,15 @@ class ComunioDB(DBHandler, Thread):
         """
         self.logger.info("Updating comunio {} data in database".format(self.comunioscore_table_user))
 
-        player_standings = self.comunio.get_player_standings()
+        self.player_standings = self.comunio.get_player_standings()
         communityname = self.comunio.get_community_name()
 
         sql = "update {}.{} set username = %s, community = %s, points = %s, teamvalue = %s where userid = %s"\
               .format(self.comunioscore_schema, self.comunioscore_table_user)
 
         try:
-            for player in player_standings:
-                self.dbinserter.row(sql=sql, data=(player['name'], communityname, player['points'], player['teamValue'],
+            for player in self.player_standings:
+                self.dbinserter.row(sql=sql, data=(player['name'].strip(), communityname, player['points'], player['teamValue'],
                                                    player['id']))
         except DBInserterError as ex:
             self.logger.error(ex)
@@ -126,14 +129,14 @@ class ComunioDB(DBHandler, Thread):
         self.logger.info("Insert {} data into database".format(self.comunioscore_table_squad))
 
         users = self.comunio.get_comunio_user_data()
-        sql = "insert into {}.{} (userid, username, playername, playerposition, club) values(%s, %s, %s, %s, %s)"\
+        sql = "insert into {}.{} (userid, username, playername, playerposition, club, linedup) values(%s, %s, %s, %s, %s, %s)"\
               .format(self.comunioscore_schema, self.comunioscore_table_squad)
 
         try:
             for user in users:
                 for player in user['squad']:
-                    self.dbinserter.row(sql=sql, data=(user['id'],user['name'], player['name'], player['position'],
-                                                       player['club']), autocommit=True)
+                    self.dbinserter.row(sql=sql, data=(user['id'], user['name'], player['name'], player['position'],
+                                                       player['club'], player['linedup']), autocommit=True)
         except DBInserterError as ex:
             self.logger.error(ex)
 
@@ -144,14 +147,14 @@ class ComunioDB(DBHandler, Thread):
         self.logger.info("Updating {} data".format(self.comunioscore_table_squad))
 
         users = self.comunio.get_comunio_user_data()
-        sql = "insert into {}.{} (userid, username, playername, playerposition, club) values(%s, %s, %s, %s, %s)"\
+        sql = "insert into {}.{} (userid, username, playername, playerposition, club, linedup) values(%s, %s, %s, %s, %s, %s)"\
               .format(self.comunioscore_schema, self.comunioscore_table_squad)
         try:
             for user in users:
                 self.dbinserter.sql(sql="delete from {}.{} where userid = {}".format(self.comunioscore_schema,
                                                                                      self.comunioscore_table_squad, int(user['id'])))
                 for player in user['squad']:
-                    self.dbinserter.row(sql=sql, data=(user['id'],user['name'], player['name'], player['position'], player['club']))
+                    self.dbinserter.row(sql=sql, data=(user['id'], user['name'], player['name'], player['position'], player['club'], player['linedup']))
         except DBInserterError as ex:
             self.logger.error(ex)
 
@@ -200,3 +203,31 @@ class ComunioDB(DBHandler, Thread):
             self.dbinserter.sql(sql=sql)
         except DBInserterError as ex:
             self.logger.error(ex)
+
+    def get_comunio_user_data(self):
+        """ get comunio user data
+
+        :return: dict with comunio user data
+        """
+        return self.player_standings
+
+    def update_linedup_squad(self):
+        """ updates linedup squad in database
+
+        """
+        self.logger.info("Updating linedup squad data")
+
+        user_sql = "select userid from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
+        linedup_sql = "update {}.{} set linedup = %s where userid = %s and playername = %s".format(self.comunioscore_schema, self.comunioscore_table_squad)
+
+        comunio_users = self.dbfetcher.all(sql=user_sql)
+        for user in comunio_users:
+            userid = user[0]
+            squad = self.comunio.get_squad(userid=userid)
+            for player in squad:
+                playername = player['name']
+                linedup    = player['linedup']
+                try:
+                    self.dbinserter.row(sql=linedup_sql, data=(linedup, userid, playername))
+                except DBInserterError as ex:
+                    self.logger.error(ex)

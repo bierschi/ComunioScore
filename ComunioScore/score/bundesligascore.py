@@ -137,8 +137,12 @@ class BundesligaScore(SofaScore):
         """
 
         lineup = self.get_lineups_match(match_id=match_id)
+
         players_home_team = lineup['homeTeam']['lineupsSorted']
         players_away_team = lineup['awayTeam']['lineupsSorted']
+
+        relevant_incidents = self.get_incidents_for_match(lineup=lineup)
+
         lineup_dict = dict()
         home_lineup_list = list()
         away_lineup_list = list()
@@ -149,7 +153,7 @@ class BundesligaScore(SofaScore):
             try:
                 home_player_dict['player_rating'] = player['rating']
             except KeyError:
-                home_player_dict['player_rating'] = 'not_available'
+                home_player_dict['player_rating'] = '–'
             home_lineup_list.append(home_player_dict)
 
         for player in players_away_team:
@@ -159,13 +163,72 @@ class BundesligaScore(SofaScore):
             try:
                 away_player_dict['player_rating'] = player['rating']
             except KeyError:
-                away_player_dict['player_rating'] = 'not_available'
+                away_player_dict['player_rating'] = '–'
             away_lineup_list.append(away_player_dict)
 
         lineup_dict['homeTeam'] = home_lineup_list
         lineup_dict['awayTeam'] = away_lineup_list
+        lineup_dict['homeTeamIncidents'] = relevant_incidents['home_team_incidents']
+        lineup_dict['awayTeamIncidents'] = relevant_incidents['away_team_incidents']
 
         return lineup_dict
+
+    def get_incidents_for_match(self, lineup):
+        """ get all incidents for a specific match
+
+        :param lineup: lineup stats for given match
+
+        :return: relevant_incidents
+        """
+
+        relevant_incidents = dict()
+
+        home_team_incidents_list = list()
+        if 'incidents' in lineup['homeTeam']:
+            home_team_incidents = lineup['homeTeam']['incidents']
+            for incident in home_team_incidents:
+                for inc in home_team_incidents[incident]:
+                    if 'incidentType' in inc:
+                        # goal incident
+                        if inc['incidentType'] == 'goal':
+                            incidents_hometeam = dict()
+                            incidents_hometeam['type'] = 'goal'
+                            incidents_hometeam['class'] = inc['incidentClass']
+                            incidents_hometeam['player'] = inc['player']['name']
+                            home_team_incidents_list.append(incidents_hometeam)
+                        # yellowRed, Red incident
+                        if (inc['incidentType'] == 'card') and ((inc['type'] == 'YellowRed') or (inc['type'] == 'Red')):
+                            incidents_hometeam = dict()
+                            incidents_hometeam['type'] = 'card'
+                            incidents_hometeam['class'] = inc['type']
+                            incidents_hometeam['player'] = inc['player']['name']
+                            home_team_incidents_list.append(incidents_hometeam)
+
+        away_team_incidents_list = list()
+        if 'incidents' in lineup['awayTeam']:
+            away_team_incidents = lineup['awayTeam']['incidents']
+            for incident in away_team_incidents:
+                for inc in away_team_incidents[incident]:
+                    if 'incidentType' in inc:
+                        # goal incident
+                        if inc['incidentType'] == 'goal':
+                            incidents_awayteam = dict()
+                            incidents_awayteam['type'] = 'goal'
+                            incidents_awayteam['class'] = inc['incidentClass']
+                            incidents_awayteam['player'] = inc['player']['name']
+                            away_team_incidents_list.append(incidents_awayteam)
+                        # yellowRed, Red incident
+                        if (inc['incidentType'] == 'card') and ((inc['type'] == 'YellowRed') or (inc['type'] == 'Red')):
+                            incidents_awayteam = dict()
+                            incidents_awayteam['type'] = 'card'
+                            incidents_awayteam['class'] = inc['type']
+                            incidents_awayteam['player'] = inc['player']['name']
+                            away_team_incidents_list.append(incidents_awayteam)
+
+        relevant_incidents['home_team_incidents'] = home_team_incidents_list
+        relevant_incidents['away_team_incidents'] = away_team_incidents_list
+
+        return relevant_incidents
 
     def season_data(self):
         """ get season data from season id
@@ -242,6 +305,6 @@ class BundesligaScore(SofaScore):
 
 if __name__ == '__main__':
     b = BundesligaScore(season_date="2019-08-18")
-    print(b.set_current_season())
+    print(b.lineup_from_match_id(match_id=8272182))
     #b.vis_lineup_with_rating(8272006)
     #print(b.is_finished(8272006))

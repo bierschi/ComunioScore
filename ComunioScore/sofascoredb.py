@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=300, **dbparams):
+    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=100, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -33,6 +33,7 @@ class SofascoreDB(DBHandler, Thread):
 
         # event handler
         self.matchscheduler_event_handler = None
+        self.comunio_user_data_event_handler = None
 
         # counters set to zero
         self.update_season_counter = 0
@@ -41,14 +42,21 @@ class SofascoreDB(DBHandler, Thread):
         # create BundesligaScore instance
         self.bundesliga = BundesligaScore(season_date=self.season_date)
 
+        self.season_data = None
+
     def run(self) -> None:
         """ run thread for class SofascoreDB
 
         """
         self.delete_season()
         sleep(1)
+        self.delete_points()
+        sleep(1)
         self.insert_season()
-
+        sleep(1)
+        self.insert_points()
+        sleep(1)
+        self.logger.info("Start sofascoredb run thread!")
         while self.running:
             sleep(1)
             self.update_season_counter += 1
@@ -64,10 +72,17 @@ class SofascoreDB(DBHandler, Thread):
     def register_matchscheduler_event_handler(self, func):
         """ register the matchscheduler event handler function
 
-        :param func: new event handler function
+        :param func: event handler function
         """
 
         self.matchscheduler_event_handler = func
+
+    def register_comunio_user_data(self, func):
+        """ register the comunio user data event handler function
+
+        :param func: event handler function
+        """
+        self.comunio_user_data_event_handler = func
 
     def insert_season(self):
         """ insert season data into database
@@ -75,13 +90,14 @@ class SofascoreDB(DBHandler, Thread):
         """
         self.logger.info("Insert season data into database")
 
-        sql = "insert into {}.season (match_day, match_type, match_id, start_timestamp, start_datetime, homeTeam, " \
-              "awayTeam, homeScore, awayScore, season) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
+        sql = "insert into {}.{} (match_day, match_type, match_id, start_timestamp, start_datetime, homeTeam, " \
+              "awayTeam, homeScore, awayScore, season) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
+               self.comunioscore_schema, self.comunioscore_table_season)
 
-        season_data = self.bundesliga.season_data()
+        self.season_data = self.bundesliga.season_data()
         season_list = list()
 
-        for matchday in season_data:
+        for matchday in self.season_data:
             start_dt = datetime.datetime.fromtimestamp(matchday['startTimestamp'])
             season_list.append((matchday['matchDay'], matchday['type'], matchday['matchId'], matchday['startTimestamp'],
                                 start_dt, matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore'], self.bundesliga.season_year))
@@ -97,12 +113,13 @@ class SofascoreDB(DBHandler, Thread):
         """
         self.logger.info("Updating season data")
 
-        season_data = self.bundesliga.season_data()
+        self.season_data = self.bundesliga.season_data()
 
-        sql = "update {}.season set match_type = %s, homeScore = %s, awayScore = %s where match_id = %s".format(self.comunioscore_schema)
+        sql = "update {}.{} set match_type = %s, homeScore = %s, awayScore = %s where match_id = %s".format(
+              self.comunioscore_schema, self.comunioscore_table_season)
 
         try:
-            for matchday in season_data:
+            for matchday in self.season_data:
                 self.dbinserter.row(sql=sql, data=(matchday['type'], matchday['homeScore'], matchday['awayScore'], matchday['matchId']))
         except DBInserterError as ex:
             self.logger.error(ex)
@@ -159,10 +176,48 @@ class SofascoreDB(DBHandler, Thread):
                     #    self.logger.error("Not registering match day {}: {} vs. {} due to {}".format(match[0], match[5], match[6], match[1]))
 
                     if match[1] == 'finished':  # notstarted is the normal match type for new events
-                        if i < 2:
+                        if i < 3:
                             self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
                             #break
                     else:
                         self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
             else:
                 self.logger.error("No matchscheduler event handler registered!!")
+
+    def insert_points(self):
+        """ inserts all data into points table
+
+        """
+        self.logger.info("Insert points data into database")
+
+        points_sql = "insert into {}.{} (userid, username, match_id, match_day, hometeam, awayteam) " \
+                     "values (%s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema, self.comunioscore_table_points)
+
+        points_table_list = list()
+        if self.comunio_user_data_event_handler:
+            player_standing = self.comunio_user_data_event_handler()
+            for player in player_standing:
+                userid = player['id']
+                username = player['name'].strip()
+                for matchday in self.season_data:
+                    points_table_list.append((userid, username, matchday['matchId'], matchday['matchDay'], matchday['homeTeam'], matchday['awayTeam']))
+
+            try:
+                self.dbinserter.many_rows(sql=points_sql, datas=points_table_list)
+            except DBInserterError as ex:
+                self.logger.error(ex)
+        else:
+            self.logger.error("Event Handler for comunio user data is None!")
+
+    def delete_points(self):
+        """ deletes all data from points table
+
+        """
+        self.logger.info("Deleting points data from database")
+
+        sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_points)
+
+        try:
+            self.dbinserter.sql(sql=sql, autocommit=True)
+        except DBInserterError as ex:
+            self.logger.error(ex)

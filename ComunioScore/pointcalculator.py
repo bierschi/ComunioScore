@@ -9,7 +9,7 @@ class PointCalculator:
     """
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
-        self.logger.info('create class PointCalculator')
+        self.logger.info('Create class PointCalculator')
 
     @staticmethod
     def get_points_from_rating(rating):
@@ -61,6 +61,8 @@ class PointCalculator:
             return 11
         elif (rating >= 9.3) and (rating <= 10.0):
             return 12
+        else:
+            logging.getLogger('ComunioScore').error("Invalid rating {}".format(rating))
 
     @staticmethod
     def get_points_for_goal(position):
@@ -70,14 +72,16 @@ class PointCalculator:
         :return: points for the position type
         """
 
-        if position is 'Goalkeeper':
+        if (position == 'Goalkeeper') or (position == 'keeper'):
             return 6
-        elif position is 'Defender':
+        elif (position == 'Defender') or (position == 'defender'):
             return 5
-        elif position is 'Midfielder':
+        elif (position == 'Midfielder') or (position == 'midfielder'):
             return 4
-        elif position is 'Forward':
+        elif (position == 'Forward') or (position == 'striker'):
             return 3
+        else:
+            logging.getLogger('ComunioScore').error("Invalid position {}".format(position))
 
     @staticmethod
     def get_points_for_offs(off_type):
@@ -86,10 +90,12 @@ class PointCalculator:
         :return: points for the off type
         """
 
-        if off_type is 'yellow_red':
+        if off_type == 'yellow_red':
             return -3
-        elif off_type is 'red':
+        elif off_type == 'red':
             return -6
+        else:
+            logging.getLogger('ComunioScore').error("Invalid off_type {}".format(off_type))
 
     @staticmethod
     def get_penalty():
@@ -98,3 +104,4 @@ class PointCalculator:
         :return: points for penalty
         """
         return 3
+
