@@ -2,6 +2,7 @@ import logging
 from telegram.ext import Updater, CommandHandler
 from telegram.bot import Bot
 from telegram.parsemode import ParseMode
+from telegram.ext.dispatcher import run_async
 
 
 class ComunioScoreTelegram:
@@ -33,14 +34,15 @@ class ComunioScoreTelegram:
         # handler to update the msg update rate per user
         self.add_handler(command="msg_rate", handler=self.update_msg_rate)
 
-        self.current_points_event_handler = None
+        self.points_summery_event_handler = None
 
-    def run(self):
+    def run(self, blocking=False):
         """ runs the telegram updater
 
         """
         self.updater.start_polling()
-        self.updater.idle()
+        if blocking:
+            self.updater.idle()
 
     def add_handler(self, command, handler):
         """ add a handler function to the dispatcher
@@ -50,12 +52,12 @@ class ComunioScoreTelegram:
         """
         self.dp.add_handler(handler=CommandHandler(command=command, callback=handler))
 
-    def register_current_points_event_handler(self, func):
+    def register_points_summery_event_handler(self, func):
         """ current points event handler
 
         :param func: handler function
         """
-        self.current_points_event_handler = func
+        self.points_summery_event_handler = func
 
     def new_msg(self, text):
         """ new text message for the bot
@@ -64,6 +66,7 @@ class ComunioScoreTelegram:
         #self.logger.info("Send new message to comunioscore group")
         self.bot.sendMessage(chat_id=self.comunioscore_chatid, text=text, parse_mode=ParseMode.MARKDOWN)
 
+    @run_async
     def get_current_points(self, bot, update):
         """
 
@@ -73,8 +76,14 @@ class ComunioScoreTelegram:
         user_id = update.effective_user.id
         self.logger.info("Userid: {} requests the current points".format(user_id))
 
-        point_msg = "*User1*: 2\n*User2*: 5"
-        bot.send_message(chat_id=chat_id, text=point_msg, parse_mode=ParseMode.MARKDOWN)
+        if self.points_summery_event_handler:
+            point_msg = self.points_summery_event_handler()
+
+        else:
+            point_msg = "No Points available!"
+            self.logger.error("Points summery event handler is not registerd!")
+
+        bot.send_message(chat_id=chat_id, text=str(point_msg), parse_mode=ParseMode.MARKDOWN)
 
     def update_msg_rate(self, bot, update):
         """

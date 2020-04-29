@@ -9,6 +9,7 @@ from ComunioScore.utils import Logger
 from ComunioScore import __version__
 from ComunioScore.livedata import LiveData
 from ComunioScore.matchscheduler import MatchScheduler
+from ComunioScore.messenger import ComunioScoreTelegram
 
 
 class ComunioScore:
@@ -37,12 +38,18 @@ class ComunioScore:
         self.router = Router(name=self.name)
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
+        # create telegram instance
+        self.telegram = ComunioScoreTelegram(token=self.token)
+
         # create ComunioDB instance
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
 
         # create LiveData instance
         self.livedata = LiveData(season_date=self.season_date, token=self.token, **dbparams)
         self.livedata.register_update_squad_event_handler(func=self.comuniodb.update_linedup_squad)
+        self.livedata.register_telegram_send_event_handler(func=self.telegram.new_msg)
+        # register summery points msg handler
+        self.telegram.register_points_summery_event_handler(func=self.livedata.points_summery)
 
         # create MatchScheduler instance
         self.matchscheduler = MatchScheduler()
@@ -64,6 +71,8 @@ class ComunioScore:
         self.comuniodb.start()
         # start sofascoredb run thread
         self.sofascoredb.start()
+        # start telegram polling
+        self.telegram.run()
         self.logger.info("running application on port: {}".format(port))
         self.router.run(host=host, port=port, debug=debug)
 
