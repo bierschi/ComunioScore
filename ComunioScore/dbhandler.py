@@ -90,6 +90,7 @@ class DBHandler:
                                      Column(name="linedup", type="text"),
                                      schema=self.comunioscore_schema))
 
+        # create table if not exists season
         self.logger.info("Create Table {}".format(self.comunioscore_table_season))
         self.dbcreator.build(obj=Table(self.comunioscore_table_season,
                                        Column(name="match_day", type="Integer"),
@@ -104,6 +105,7 @@ class DBHandler:
                                        Column(name="season", type="text"),
                                        schema=self.comunioscore_schema))
 
+        # create table if not exists points
         self.logger.info("Create Table {}".format(self.comunioscore_table_points))
         self.dbcreator.build(obj=Table(self.comunioscore_table_points,
                                        Column(name="userid", type="bigint"),
@@ -148,6 +150,6 @@ class DBHandler:
             data = self.dbfetcher.all(sql=points_sql, data=points_sql_data)
         except DBInserterError as ex:
             self.logger.error(ex)
-            data = []
+            data = list()
 
         return data

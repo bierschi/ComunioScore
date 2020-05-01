@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=100, **dbparams):
+    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=7200, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -57,6 +57,7 @@ class SofascoreDB(DBHandler, Thread):
         self.insert_points()
         sleep(1)
         self.logger.info("Start sofascoredb run thread!")
+
         while self.running:
             sleep(1)
             self.update_season_counter += 1
@@ -164,21 +165,19 @@ class SofascoreDB(DBHandler, Thread):
             next_match_day = last_match_day + 1
 
         match_sql = "select * from {}.{} where match_day=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
-        next_match_day = 25
+        #next_match_day = 25
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
         if len(match_day_data) > 9:
             self.logger.error("length of match day data is greater than 9!!")
         else:
             if self.matchscheduler_event_handler:
-                for (i,match) in enumerate(match_day_data):
+                for (i, match) in enumerate(match_day_data):
                     # TODO Uncomment and change 'postponed' with 'notstarted'
-                    #if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
-                    #    self.logger.error("Not registering match day {}: {} vs. {} due to {}".format(match[0], match[5], match[6], match[1]))
+                    if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
+                        self.logger.error("Not registering match day {}: {} vs. {} because match is {}".format(match[0], match[5], match[6], match[1]))
 
-                    if match[1] == 'finished':  # notstarted is the normal match type for new events
-                        if i < 3:
-                            self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
-                            #break
+                    elif match[1] == 'notstarted':  # notstarted is the normal match type for new events
+                        self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
                     else:
                         self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
             else:

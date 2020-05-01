@@ -1,5 +1,6 @@
 import logging
 import requests
+
 from ComunioScore.exceptions import SofascoreRequestError
 
 
@@ -104,11 +105,4 @@ class SofaScore:
 
         return self.__request_api(url=season_url)
 
-
-if __name__ == '__main__':
-    sc = SofaScore()
-
-    #print(sc.get_lineups_match(8272007))
-    #print(sc.get_season(season_id=23538))
-    #print(sc.parse_lineups_event(event_id=8271996))
 

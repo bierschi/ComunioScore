@@ -48,8 +48,8 @@ class MatchScheduler:
                 event_ts = datetime.datetime.fromtimestamp(int(event_ts))
                 self.scheduler.schedule(self.livedata_event_handler, event_ts, match_day, match_id, home_team, away_team)
             else:
-                #self.logger.error("9 match events are scheduled already. Wait..")
-                pass
+                self.logger.error("9 match events are scheduled already. Wait...")
+
         else:
             self.logger.error("No livedata_event_handler configured!")
 

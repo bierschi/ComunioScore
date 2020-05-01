@@ -5,14 +5,15 @@ from configparser import NoOptionError, NoSectionError
 
 from ComunioScore.routes import Router
 from ComunioScore import APIHandler, ComunioDB, SofascoreDB
-from ComunioScore.utils import Logger
-from ComunioScore import __version__
 from ComunioScore.livedata import LiveData
 from ComunioScore.matchscheduler import MatchScheduler
+from ComunioScore.messenger import ComunioScoreTelegram
+from ComunioScore.utils import Logger
+from ComunioScore import __version__
 
 
 class ComunioScore:
-    """ class ComunioScore to setup all instances for the application
+    """ class ComunioScore to setup all instances and register event handler for the application
 
     USAGE:
             cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token,
@@ -37,12 +38,21 @@ class ComunioScore:
         self.router = Router(name=self.name)
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
+        # create telegram instance
+        self.telegram = ComunioScoreTelegram(token=self.token)
+
         # create ComunioDB instance
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
 
         # create LiveData instance
-        self.livedata = LiveData(season_date=self.season_date, token=self.token, **dbparams)
+        self.livedata = LiveData(season_date=self.season_date, **dbparams)
         self.livedata.register_update_squad_event_handler(func=self.comuniodb.update_linedup_squad)
+        self.livedata.register_telegram_send_event_handler(func=self.telegram.new_msg)
+
+        # register summery points, rate and cancel event handler
+        self.telegram.register_points_summery_event_handler(func=self.livedata.points_summery)
+        self.telegram.register_rate_event_handler(func=self.livedata.set_msg_rate)
+        self.telegram.register_notify_event_handler(func=self.livedata.set_notify_flag)
 
         # create MatchScheduler instance
         self.matchscheduler = MatchScheduler()
@@ -64,6 +74,8 @@ class ComunioScore:
         self.comuniodb.start()
         # start sofascoredb run thread
         self.sofascoredb.start()
+        # start telegram polling
+        self.telegram.run()
         self.logger.info("running application on port: {}".format(port))
         self.router.run(host=host, port=port, debug=debug)
 
@@ -76,7 +88,7 @@ def main():
 
     usage2 = "ComunioScore config --file /etc/comunioscore/comunioscore.ini"
 
-    description = "console script for application ComunioScore \n\nUsage:\n    {}\n    {}".format(usage1, usage2)
+    description = "ComunioScore Application\n\nUsage:\n    {}\n    {}".format(usage1, usage2)
 
     # parse arguments for ComunioScore
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -177,7 +189,8 @@ def main():
     logger.info("Start application ComunioScore")
 
     # create application instance
-    cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token, season_date=season_date, **dbparams)
+    cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token,
+                      season_date=season_date, **dbparams)
 
     # run the application
     cs.run(host=host, port=port)

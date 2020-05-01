@@ -1,7 +1,7 @@
 ## Maps the [sofascore](https://www.sofascore.com/de/) rating to [comunio](https://www.comunio.de/home) players
 [![Build Status](https://travis-ci.org/bierschi/ComunioScore.png?branch=master)](https://travis-ci.org/bierschi/ComunioScore) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-- get live points from your comunio players
-- website to visualize rating, points and different statistics from your comunio players
+- get current ranking of all comunio players
+- periodic messages for player rating, goals and offs
 - messenger integration to share it in groups chat with friends
 
 
@@ -36,7 +36,7 @@ ComunioScore config --file /etc/comunioscore/comunioscore.ini
 </code></pre>
 
 
-edit the `comunioscore.ini` file and add credentials from comunio and postgres database:
+edit the `comunioscore.ini` file and add credentials from comunio, telegram and postgres database:
 <pre><code>
 [comunio]
 username=
@@ -55,6 +55,9 @@ port=8086
 
 [telegram]
 token=
+
+[season]
+startdate=
 </code></pre>
 
 
