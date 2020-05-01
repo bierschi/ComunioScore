@@ -1,10 +1,9 @@
 import logging
 from difflib import SequenceMatcher
-
+from threading import Lock
 from ComunioScore import DBHandler
 from ComunioScore.score import BundesligaScore
 from ComunioScore import PointCalculator
-from ComunioScore.exceptions import DBInserterError
 
 import random
 from time import sleep
@@ -47,21 +46,26 @@ class LiveData(DBHandler):
         self.update_squad_event_handler = None
         self.telegram_send_event_handler = None
 
+        # init current match day to None
         self.current_match_day = None
 
-    def register_update_squad_event_handler(self, func):
-        """
+        # create lock object
+        self.lock = Lock()
+        self.running = True
+        self.is_notify = True
+        self.msg_rate = 40
 
-        :param func:
-        :return:
+    def register_update_squad_event_handler(self, func):
+        """ register the update squad event handler
+
+        :param func: event handler
         """
         self.update_squad_event_handler = func
 
     def register_telegram_send_event_handler(self, func):
-        """
+        """ register the telegram send event handler
 
-        :param func:
-        :return:
+        :param func: event handler
         """
         self.telegram_send_event_handler = func
 
@@ -72,12 +76,14 @@ class LiveData(DBHandler):
         :param match_id: match id for sofascore
         :param home_team: home team
         :param away_team: away team
-
         """
 
         live_data_start_msg = "Start fetching live data from match day {}: *{}* vs. *{}*".format(match_day, home_team, away_team)
         self.logger.info(live_data_start_msg)
+        # send start msg
+        self.lock.acquire()
         self.telegram_send_event_handler(live_data_start_msg)
+        self.lock.release()
 
         # set current match_day
         self.current_match_day = match_day
@@ -86,8 +92,9 @@ class LiveData(DBHandler):
         self.update_linedup_squad()
 
         # while not finished
-        for i in range(0, 2):
-            sleep(10)
+        while self.running:
+        #for i in range(0, 1):
+            #sleep(10)
             # get all comunio players of interest for sofascore rating
             players_of_interest_for_match = self.set_comunio_players_of_interest_for_match(home_team=home_team, away_team=away_team)
 
@@ -99,28 +106,30 @@ class LiveData(DBHandler):
             livedata = self.map_players_of_interest_with_match_lineup(players_of_interest=players_of_interest_for_match,
                                                                       match_lineup=match_lineup)
 
+            # calculate the points for current match day
             self.logger.info("Calculate points for match day {}: {} vs. {}".format(match_day, home_team, away_team))
             self.calculate_points_per_match(livedata=livedata, match_id=match_id, match_day=match_day)
 
+            # prepare the telegram message
             self.logger.info("Prepare telegram message for match day {}: {} vs. {}".format(match_day, home_team, away_team))
             livedata_msg = self.prepare_telegram_message(livedata=livedata, home_team=home_team, away_team=away_team,
                                                          match_day=match_day, match_id=match_id)
-            self.telegram_send_event_handler(text=livedata_msg)
+            if self.is_notify:
+                self.lock.acquire()
+                self.telegram_send_event_handler(text=livedata_msg)
+                self.lock.release()
 
-            sleep(random.randint(15, 40))
-
-        # 1. get players from home team and away team of given match id
-        # 2. check squad from each comunio user if a player in home or away team
-        # 3. create new data structure for the relevant players
-        # 4. request the current rating of the relevant players
-        # 5. send telegram message periodically or with an command handler
-        # 6. calculate per match the points for all user and insert in table points
-        # 7. provide a method to query periodic the sum of points of all matches and send telegram msg
-        # 8. when all matches are finished, sum points from all matches with cards and goals
+            sleep(self.msg_rate)
 
         live_data_end_msg = "Finished fetching live data from match *{}* vs *{}*".format(home_team, away_team)
         self.logger.info(live_data_end_msg)
+
+        # send finish msg
+        self.lock.acquire()
         self.telegram_send_event_handler(text=live_data_end_msg)
+        self.lock.release()
+
+        # set linedup squad to false
         LiveData.is_squad_updated = False
 
     def update_linedup_squad(self):
@@ -384,17 +393,18 @@ class LiveData(DBHandler):
                 # rating points
                 if player['points'] != '–':
                     points_rating += player['points']
-            #print("Points-> rating: {}, goals: {}, offs: {}".format(points_rating, points_goals, points_offs))
+
             self.update_points_in_database(userid=userid, match_id=match_id, match_day=match_day,
                                            points_rating=points_rating, points_goal=points_goals, points_off=points_offs)
 
     def points_summery(self):
         """ sums up the current points for each comunio player
 
-        :return:
+        :return: dict with sorted players and points
         """
 
         sum_points = dict()
+
         for user in self.comunio_users:
             userid = user[0]
             username = user[1]
@@ -408,14 +418,29 @@ class LiveData(DBHandler):
                     points_goal = match[1]
                     points_offs = match[2]
                     points_match = points_rating + points_goal + points_offs
-                    print("user: {} points_match: {}".format(username, points_match))
                     points_all += points_match
-
                 else:
                     self.logger.error("Invalid None points: {}".format(match))
             sum_points[username] = points_all
-        print(sum_points)
-        #sort dict by key
-        sort_sum_points = {k: v for k, v in sorted(sum_points.items(), key=lambda item: item[1], reverse=True)}
-        print(sort_sum_points)
-        return sort_sum_points
+
+        # sort dict by key
+        sum_points_sorted = {k: v for k, v in sorted(sum_points.items(), key=lambda item: item[1], reverse=True)}
+
+        return self.current_match_day, sum_points_sorted
+
+    def set_msg_rate(self, rate):
+        """ set the msg notification rate
+
+        :param rate: rate
+        """
+        try:
+            self.msg_rate = int(rate)
+        except ValueError as ex:
+            self.logger.error(ex)
+
+    def set_notify_flag(self, notify):
+        """ sets the notify flag
+
+        :param notify: notify flag
+        """
+        self.is_notify = notify
