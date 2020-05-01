@@ -1,5 +1,6 @@
 import logging
 from time import sleep
+
 from ComunioScore.score.sofascore import SofaScore
 from ComunioScore.exceptions import SofascoreRequestError
 

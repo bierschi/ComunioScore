@@ -1,12 +1,11 @@
 import logging
-from difflib import SequenceMatcher
+from time import sleep
 from threading import Lock
+from difflib import SequenceMatcher
+
 from ComunioScore import DBHandler
 from ComunioScore.score import BundesligaScore
 from ComunioScore import PointCalculator
-
-import random
-from time import sleep
 
 
 class LiveData(DBHandler):
@@ -19,7 +18,7 @@ class LiveData(DBHandler):
     """
     is_squad_updated = False
 
-    def __init__(self, season_date, token, **dbparams):
+    def __init__(self, season_date, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class LiveData')
 
@@ -28,7 +27,9 @@ class LiveData(DBHandler):
 
         # set attributes
         self.season_date = season_date
-        self.token = token
+        self.running = True
+        self.is_notify = True
+        self.msg_rate = 40
 
         # bundesligascore instance
         self.bundesliga = BundesligaScore(season_date=self.season_date)
@@ -39,7 +40,6 @@ class LiveData(DBHandler):
         # sql
         self.user_sql = "select userid, username from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
         self.squad_sql = "select playername, playerposition, club  from {}.{} where userid = %s and linedup = 'true' ".format(self.comunioscore_schema, self.comunioscore_table_squad)
-
         self.comunio_users = self.dbfetcher.all(sql=self.user_sql)
 
         # event handler
@@ -50,10 +50,7 @@ class LiveData(DBHandler):
         self.current_match_day = None
 
         # create lock object
-        self.lock = Lock()
-        self.running = True
-        self.is_notify = True
-        self.msg_rate = 40
+        self.telegram_lock = Lock()
 
     def register_update_squad_event_handler(self, func):
         """ register the update squad event handler
@@ -80,21 +77,23 @@ class LiveData(DBHandler):
 
         live_data_start_msg = "Start fetching live data from match day {}: *{}* vs. *{}*".format(match_day, home_team, away_team)
         self.logger.info(live_data_start_msg)
+
         # send start msg
-        self.lock.acquire()
-        self.telegram_send_event_handler(live_data_start_msg)
-        self.lock.release()
+        if self.is_notify:
+            self.telegram_lock.acquire()
+            self.telegram_send_event_handler(live_data_start_msg)
+            self.telegram_lock.release()
 
         # set current match_day
         self.current_match_day = match_day
 
-        # update linedup comunio players in database before while loop
+        # update linedup comunio players in database before sending livedata
         self.update_linedup_squad()
 
-        # while not finished
-        while self.running:
-        #for i in range(0, 1):
-            #sleep(10)
+        # collect livedata as long as match is not finished
+        #while self.running:
+        while self.bundesliga.is_finished(matchid=match_id):
+
             # get all comunio players of interest for sofascore rating
             players_of_interest_for_match = self.set_comunio_players_of_interest_for_match(home_team=home_team, away_team=away_team)
 
@@ -110,24 +109,27 @@ class LiveData(DBHandler):
             self.logger.info("Calculate points for match day {}: {} vs. {}".format(match_day, home_team, away_team))
             self.calculate_points_per_match(livedata=livedata, match_id=match_id, match_day=match_day)
 
-            # prepare the telegram message
-            self.logger.info("Prepare telegram message for match day {}: {} vs. {}".format(match_day, home_team, away_team))
-            livedata_msg = self.prepare_telegram_message(livedata=livedata, home_team=home_team, away_team=away_team,
-                                                         match_day=match_day, match_id=match_id)
             if self.is_notify:
-                self.lock.acquire()
+                # prepare the telegram message
+                self.logger.info("Prepare telegram message for match day {}: {} vs. {}".format(match_day, home_team, away_team))
+                livedata_msg = self.prepare_telegram_message(livedata=livedata, home_team=home_team, away_team=away_team,
+                                                             match_day=match_day, match_id=match_id)
+
+                self.telegram_lock.acquire()
                 self.telegram_send_event_handler(text=livedata_msg)
-                self.lock.release()
+                self.telegram_lock.release()
 
             sleep(self.msg_rate)
 
+        # after match is finished
         live_data_end_msg = "Finished fetching live data from match *{}* vs *{}*".format(home_team, away_team)
         self.logger.info(live_data_end_msg)
 
-        # send finish msg
-        self.lock.acquire()
-        self.telegram_send_event_handler(text=live_data_end_msg)
-        self.lock.release()
+        if self.is_notify:
+            # send finish msg
+            self.telegram_lock.acquire()
+            self.telegram_send_event_handler(text=live_data_end_msg)
+            self.telegram_lock.release()
 
         # set linedup squad to false
         LiveData.is_squad_updated = False
@@ -199,7 +201,7 @@ class LiveData(DBHandler):
 
         # data with all comunio user and related players
         livedata = list()
-        print(match_lineup)
+        #print(match_lineup)
         # iterate over all comunio users
         for comuniouser in players_of_interest:
             user_name = comuniouser['user']
@@ -268,7 +270,7 @@ class LiveData(DBHandler):
 
             # add user data to list
             livedata.append(user_squad_dict)
-        print(livedata)
+        #print(livedata)
         return livedata
 
     def get_player_data(self, playername, playerrating, playerposition, incidents):
@@ -337,6 +339,7 @@ class LiveData(DBHandler):
         telegram_str = ""
         match_str = "Points rating for *{}* vs. *{}* \n\n".format(home_team, away_team)
         telegram_str += match_str
+
         for user in livedata:
             username = user['user']
             userid = user['userid']
@@ -357,6 +360,7 @@ class LiveData(DBHandler):
                     telegram_str += player_str
                 rating_str = "*P: {} + G: {} + O: {} => {}*\n".format(points_rating, points_goal, points_off, points)
                 telegram_str += rating_str
+
         return telegram_str
 
     def calculate_points_per_match(self, livedata, match_id, match_day):

@@ -1,4 +1,5 @@
 import json
+import logging
 from flask import Response, request
 
 
@@ -6,19 +7,12 @@ class APIHandler:
     """ class APIHandler to link routes to specific handler function
 
     USAGE:
-            api = APIHandler(host=host, port=port, username=username, password=password, dbname=dbname)
+            api = APIHandler()
 
     """
     def __init__(self):
-        """
-                self.db = DBFetcher()
-        try:
-            self.db.connect(host=host, port=port, username=username, password=password, dbname=dbname, minConn=1, maxConn=5)
-        except Exception as e:
-            print(e)
-
-
-        """
+        self.logger = logging.getLogger('ComunioScore')
+        self.logger.info('Create class APIHandler')
 
     def index(self):
         """
