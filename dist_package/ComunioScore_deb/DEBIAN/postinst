@@ -9,6 +9,7 @@ main() {
       echo "Start Application ComunioScore"
       enable_service_file
       stop_service_file
+      sleep 2
       start_service_file
   else
       echo "ComunioScore not started due to missing configuration file!"
