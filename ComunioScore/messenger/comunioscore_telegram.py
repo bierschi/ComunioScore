@@ -286,6 +286,6 @@ class ComunioScoreTelegram:
 
 
 if __name__ == '__main__':
-    tele = ComunioScoreTelegram(token="905245230:AAFad_zDcwuXLz2SxrTUxLPRSWaWcrMEzLk")
+    tele = ComunioScoreTelegram(token="")
     #tele.new_msg(text="was geht")
     tele.run(blocking=True)
