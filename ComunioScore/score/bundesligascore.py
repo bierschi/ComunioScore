@@ -292,20 +292,8 @@ class BundesligaScore(SofaScore):
         else:
             self.logger.error("no 'event' in self.get_match_data")
 
-    def vis_lineup_with_rating(self, matchid):
-        """ visualizes players with player rating
-
-        """
-
-        lineup = self.lineup_from_match_id(match_id=matchid)
-        #print(lineup)
-        for (homeplayer, awayplayer) in zip(lineup['homeTeam'], lineup['awayTeam']):
-            print("{}({}) :  {}({})".format(homeplayer['player_name'], homeplayer['player_rating'],
-                                                     awayplayer['player_name'], awayplayer['player_rating']))
-
 
 if __name__ == '__main__':
     b = BundesligaScore(season_date="2019-08-18")
     print(b.lineup_from_match_id(match_id=8272182))
-    #b.vis_lineup_with_rating(8272006)
     #print(b.is_finished(8272006))

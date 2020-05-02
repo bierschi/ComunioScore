@@ -23,7 +23,7 @@ class LiveData(DBHandler):
         self.logger.info('Create class LiveData')
 
         # init base class
-        DBHandler.__init__(self, **dbparams)
+        super().__init__(**dbparams)
 
         # set attributes
         self.season_date = season_date

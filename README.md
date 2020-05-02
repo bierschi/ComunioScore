@@ -14,6 +14,8 @@ pip3 install ComunioScore
 
 or from source
 <pre><code>
+git clone https://github.com/bierschi/ComunioScore
+cd ComunioScore
 sudo python3 setup.py install
 </code></pre>
 
@@ -66,6 +68,11 @@ startdate=
 change into directory `dist_package` and execute:
 <pre><code>
 ./build_package.sh --debian
+</code></pre>
+
+install debian package
+<pre><code>
+sudo dpkg -i ComunioScore_*.deb
 </code></pre>
 
 ## Logs

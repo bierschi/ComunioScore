@@ -1,26 +1,15 @@
 import unittest
-from ComunioScore.score.sofascore import SofaScore
+from ComunioScore.score import SofaScore
 
 
 class TestSofaScore(unittest.TestCase):
 
     def setUp(self) -> None:
 
-        # create sofascore instance
         self.sofascore = SofaScore()
-        self.season_id = 23538
+        self.season_id = 23538  # 19/20
         self.match_id = None
-        self.test_get_season()
-
-    def test_get_season(self):
-
-        season_data = self.sofascore.get_season(season_id=self.season_id)
-        self.assertIsInstance(season_data, dict, msg="season data must be type of dict")
-        for tournament in season_data['tournaments']:
-            for event in tournament['events']:
-                self.match_id = event['id']
-                self.assertIsInstance(self.match_id, int, msg="match id must be type of int")
-                break
+        self.get_season()
 
     def test_get_date_data(self):
 
@@ -41,6 +30,16 @@ class TestSofaScore(unittest.TestCase):
 
         player_stats = self.sofascore.get_player_stats(match_id=self.match_id, player_id=8959)
         self.assertIsInstance(player_stats, dict, msg="player stats must be type of dict")
+
+    def get_season(self):
+
+        season_data = self.sofascore.get_season(season_id=self.season_id)
+        self.assertIsInstance(season_data, dict, msg="season data must be type of dict")
+        for tournament in season_data['tournaments']:
+            for event in tournament['events']:
+                self.match_id = event['id']
+                self.assertIsInstance(self.match_id, int, msg="match id must be type of int")
+                break
 
     def tearDown(self) -> None:
         pass

@@ -157,6 +157,7 @@ class SofascoreDB(DBHandler, Thread):
         """ queries the match day data from season table and registers new match events
 
         """
+        self.logger.info("Query match data from database")
 
         last_match_day = self.get_last_match_day()
         if last_match_day is None:
@@ -164,13 +165,16 @@ class SofascoreDB(DBHandler, Thread):
         else:
             next_match_day = last_match_day + 1
 
+        self.logger.info("Set next_match_day to {}".format(next_match_day))
+
         match_sql = "select * from {}.{} where match_day=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
         #next_match_day = 25
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
         if len(match_day_data) > 9:
-            self.logger.error("length of match day data is greater than 9!!")
+            self.logger.error("length of match day data is greater than 9!! Length: {}".format(len(match_day_data)))
         else:
             if self.matchscheduler_event_handler:
+                self.logger.info("Start registering {} matches for match day {}".format(len(match_day_data), next_match_day))
                 for (i, match) in enumerate(match_day_data):
                     # TODO Uncomment and change 'postponed' with 'notstarted'
                     if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
@@ -180,6 +184,8 @@ class SofascoreDB(DBHandler, Thread):
                         self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
                     else:
                         self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
+
+                self.logger.info("Finished registering matches for match day {}".format(next_match_day))
             else:
                 self.logger.error("No matchscheduler event handler registered!!")
 
