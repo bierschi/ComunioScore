@@ -34,7 +34,7 @@ pipeline {
                          }
                     }
                     steps {
-                        echo 'Build Source Distribution'
+                        echo 'Build Distribution Packages'
                         dir('dist_package'){
                             sh 'sudo ./build_package.sh --wheel --debian'
                         }

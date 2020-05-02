@@ -49,7 +49,7 @@ class ComunioScore:
         self.livedata.register_update_squad_event_handler(func=self.comuniodb.update_linedup_squad)
         self.livedata.register_telegram_send_event_handler(func=self.telegram.new_msg)
 
-        # register summery points, rate and cancel event handler
+        # register summery points, rate and notify event handler
         self.telegram.register_points_summery_event_handler(func=self.livedata.points_summery)
         self.telegram.register_rate_event_handler(func=self.livedata.set_msg_rate)
         self.telegram.register_notify_event_handler(func=self.livedata.set_notify_flag)
