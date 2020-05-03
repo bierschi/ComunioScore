@@ -5,3 +5,4 @@
 - 17.10.2019: Published Pre-Release v1.0.1
 - 13.04.2020: Updated version to 1.0.5, First Upload to PyPI
 - 02.05.2020: Updated the version to 1.0.6, Added telegram actions
+- 03.05.2020: Updated the version to 1.0.7

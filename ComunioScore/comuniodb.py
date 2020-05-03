@@ -220,6 +220,7 @@ class ComunioDB(DBHandler, Thread):
         user_sql = "select userid from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
         linedup_sql = "update {}.{} set linedup = %s where userid = %s and playername = %s".format(self.comunioscore_schema, self.comunioscore_table_squad)
 
+        self.__comunio_login()
         comunio_users = self.dbfetcher.all(sql=user_sql)
         for user in comunio_users:
             userid = user[0]
