@@ -134,6 +134,7 @@ class ComunioScoreTelegram:
             # send points only after 30 sec has passed
             if send_time_diff > 30:
                 match_day, player_standing = self.points_summery_event_handler()
+                self.logger.info("match_day: {}, player_standing: {}".format(match_day, player_standing))
                 if match_day is None:
                     point_msg = "Player Ranking\n\n"
                 else:
