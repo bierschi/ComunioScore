@@ -230,7 +230,7 @@ class Comunio:
 
         :param userid: int number
 
-        :return: wealth as int number
+        :return: matchday wealth and matchday timestamp
         """
         self.logger.info("Get comunio wealth data from userid {}".format(userid))
 
@@ -239,12 +239,14 @@ class Comunio:
         request_info = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad-latest',
                                     headers=self.standard_header)
         json_data = json.loads(request_info.text)
+
         wealth = json_data['matchday']['budget']
+        timestamp = json_data['matchday']['timestamp']
 
         if wealth is None:  # no budget available
-            return wealth
+            return wealth, timestamp
         else:
-            return int(json_data['matchday']['budget'])
+            return wealth, timestamp
 
     def get_squad(self, userid):
         """ get squad from given userid
@@ -293,7 +295,7 @@ if __name__ == '__main__':
     comunio = Comunio()
     if comunio.login(username='', password=''):
         print(comunio.get_auth_token())
-        print(comunio.get_squad(userid=13065521))
-
+        wealth = comunio.get_wealth(userid=13119719)
+        print(wealth)
 
 

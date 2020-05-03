@@ -142,7 +142,7 @@ class BundesligaScore(SofaScore):
         players_home_team = lineup['homeTeam']['lineupsSorted']
         players_away_team = lineup['awayTeam']['lineupsSorted']
 
-        relevant_incidents = self.get_incidents_for_match(lineup=lineup)
+        relevant_incidents = self._get_incidents_for_match(lineup=lineup)
 
         lineup_dict = dict()
         home_lineup_list = list()
@@ -174,7 +174,7 @@ class BundesligaScore(SofaScore):
 
         return lineup_dict
 
-    def get_incidents_for_match(self, lineup):
+    def _get_incidents_for_match(self, lineup):
         """ get all incidents for a specific match
 
         :param lineup: lineup stats for given match
@@ -291,6 +291,7 @@ class BundesligaScore(SofaScore):
                 return False
         else:
             self.logger.error("no 'event' in self.get_match_data")
+            return True
 
 
 if __name__ == '__main__':
