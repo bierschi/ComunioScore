@@ -408,7 +408,7 @@ class LiveData(DBHandler):
         """
 
         sum_points = dict()
-
+        self.logger.info("comunio_users: {}".format(self.comunio_users))
         for user in self.comunio_users:
             userid = user[0]
             username = user[1]
