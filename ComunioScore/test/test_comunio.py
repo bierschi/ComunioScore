@@ -110,7 +110,8 @@ class TestComunio(unittest.TestCase):
     def test_get_wealth(self):
 
         user_id = self.comunio.get_user_id()
-        wealth = self.comunio.get_wealth(userid=user_id)
+        wealth_data = self.comunio.get_wealth(userid=user_id)
+        wealth = wealth_data[0]
         # check if wealth is int (if no budget available, then wealth is None)
         if wealth is None:
             self.assertIsNone(wealth, msg="wealth must be of type None")
