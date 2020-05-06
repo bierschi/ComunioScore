@@ -46,7 +46,7 @@ password=
 
 [database]
 host=
-port=5432
+port=
 username=
 password=
 dbname=
@@ -86,7 +86,9 @@ add your current user to group `syslog`, this allows the application to create a
 <pre><code>
 sudo adduser &lt;user&gt; syslog
 </code></pre>
-to apply this change, log out and log in again and check with the command `groups`
+to apply this change, log out and log in again and check with the command `groups` <br>
+
+To use pythons build in sqlite database, leave the `[database]` section in the config file empty
 
 ## Changelog
 All changes and versioning information can be found in the [CHANGELOG](https://github.com/bierschi/ComunioScore/blob/master/CHANGELOG.rst)

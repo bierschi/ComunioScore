@@ -67,6 +67,7 @@ class DBConnector:
 
             cls.connection = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
             cls.is_sqlite = True
+            logging.getLogger('ComunioScore').info("Connect to the sqlite database at {}".format(path))
             return True
 
         except sqlite3.DatabaseError as ex:
