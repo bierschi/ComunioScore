@@ -19,7 +19,7 @@ class ComunioScoreTelegram:
             cstelegram.new_msg()
 
     """
-    def __init__(self, token):
+    def __init__(self, token, chat_id):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioScoreTelegram')
 
@@ -28,7 +28,8 @@ class ComunioScoreTelegram:
         self.dp = self.updater.dispatcher
         self.bot = Bot(token=self.token)
 
-        self.comunioscore_chatid = -394160563
+        self.comunioscore_chatid = chat_id
+
         self.notify = True
         self.last_points_sent = time.time()
 
@@ -204,6 +205,7 @@ class ComunioScoreTelegram:
         :return: help description
         """
         chat_id = update.message.chat_id
+
         user = update.message.from_user
         self.logger.info("User {} with userid: {} requests the help description".format(user.username, user.id))
 

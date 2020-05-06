@@ -6,3 +6,4 @@
 - 13.04.2020: Updated version to 1.0.5, First Upload to PyPI
 - 02.05.2020: Updated the version to 1.0.6, Added telegram actions
 - 03.05.2020: Updated the version to 1.0.7
+- 06.05.2020: Updated the version to 1.0.8, Added sqlite database support

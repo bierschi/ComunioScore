@@ -21,7 +21,7 @@ class ComunioScore:
             cs.run(host=host, port=port)
 
     """
-    def __init__(self, name, comunio_user, comunio_pass, token, season_date, **dbparams):
+    def __init__(self, name, comunio_user, comunio_pass, token, chatid, season_date, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioScore')
 
@@ -29,6 +29,7 @@ class ComunioScore:
         self.comunio_user = comunio_user
         self.comunio_pass = comunio_pass
         self.token = token
+        self.chatid = chatid
         self.season_date = season_date
 
         # defines the api handler methods
@@ -39,7 +40,7 @@ class ComunioScore:
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
         # create telegram instance
-        self.telegram = ComunioScoreTelegram(token=self.token)
+        self.telegram = ComunioScoreTelegram(token=self.token, chat_id=self.chatid)
 
         # create ComunioDB instance
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
@@ -117,7 +118,8 @@ def main():
     args_parser.add_argument('-cu', '--comunio_user', type=str, help='User for the comunio login',        required=True)
     args_parser.add_argument('-cp', '--comunio_pass', type=str, help='Password for the comunio login',    required=True)
 
-    args_parser.add_argument('-t', '--token', type=str, help='Telegram token')
+    args_parser.add_argument('-t', '--token',   type=str, help='Telegram token')
+    args_parser.add_argument('-id', '--chatid', type=int, help='Telegram chat id')
 
     # argument for the current version
     parser.add_argument('-v', '--version', action='version', version=__version__, help='show the current version')
@@ -140,24 +142,30 @@ def main():
             comunio_user = config.get('comunio', 'username')
             comunio_pass = config.get('comunio', 'password')
 
-            # database section
-            dbhost     = config.get('database', 'host')
-            dbport     = config.getint('database', 'port')
-            dbusername = config.get('database', 'username')
-            dbpassword = config.get('database', 'password')
-            dbname     = config.get('database', 'dbname')
-
             # server section
             host = config.get('server', 'host')
             port = config.getint('server', 'port')
 
             # telegram section
             token = config.get('telegram', 'token')
+            chatid = config.getint('telegram', 'chatid')
+
             season_date = config.get('season', 'startdate')
 
         except (NoOptionError, NoSectionError) as ex:
             print(ex)
             exit(1)
+        try:
+            # database section
+            dbhost     = config.get('database', 'host')
+            dbport     = config.getint('database', 'port')
+            dbusername = config.get('database', 'username')
+            dbpassword = config.get('database', 'password')
+            dbname     = config.get('database', 'dbname')
+        except (NoOptionError, NoSectionError, ValueError) as ex:
+            print("Sqlite database will be used!")
+            dbhost = dbport = dbusername = dbpassword = dbname = None
+
     else:
         # parse command line arguments
         if args.host is None:
@@ -180,6 +188,7 @@ def main():
         comunio_pass = args.comunio_pass
 
         token = args.token
+        chatid = args.chatid
 
     dbparams.update({'host': dbhost, 'port': dbport, 'username': dbusername, 'password': dbpassword,
                      'dbname': dbname})
@@ -190,7 +199,7 @@ def main():
 
     # create application instance
     cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token,
-                      season_date=season_date, **dbparams)
+                      chatid=chatid, season_date=season_date, **dbparams)
 
     # run the application
     cs.run(host=host, port=port)

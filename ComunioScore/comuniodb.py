@@ -168,7 +168,11 @@ class ComunioDB(DBHandler, Thread):
 
         self.logger.info("Deleting {} data from database".format(self.comunioscore_table_squad))
 
-        sql = "truncate {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
+        if self.postgres:
+            sql = "truncate {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
+        else:
+            sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
+
         try:
             self.dbinserter.sql(sql=sql, autocommit=True)
         except DBInserterError as ex:

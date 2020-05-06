@@ -3,7 +3,7 @@
 - get current ranking of all comunio players
 - periodic messages for player rating, goals and offs
 - messenger integration to share it in groups chat with friends
-
+- supports postgresql and sqlite databases
 
 ## Installation
 
@@ -29,7 +29,7 @@ ComunioScore --help
 
 Use it with pure command line arguments
 <pre><code>
-ComunioScore args --host 127.0.0.1 --port 8086 --dbhost 127.0.01 --dbport 5432 --dbuser john --dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token adfefad
+ComunioScore args --host 127.0.0.1 --port 8086 --dbhost 127.0.01 --dbport 5432 --dbuser john --dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token adfefad --chatid 18539452
 </code></pre>
 
 Or with a configuration file
@@ -57,6 +57,7 @@ port=8086
 
 [telegram]
 token=
+chatid=
 
 [season]
 startdate=
