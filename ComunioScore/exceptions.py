@@ -23,3 +23,8 @@ class DBIntegrityError(Exception):
 class SofascoreRequestError(Exception):
     """SofascoreRequestError"""
     pass
+
+
+class InvalidAccessToken(Exception):
+    """InvalidAccessToken"""
+    pass

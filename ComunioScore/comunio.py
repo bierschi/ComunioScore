@@ -2,6 +2,8 @@ import json
 import logging
 import requests
 
+from ComunioScore.exceptions import InvalidAccessToken
+
 
 class Comunio:
     """ class Comunio to request data from logged in community
@@ -147,6 +149,9 @@ class Comunio:
         request_standing = requests.get('https://api.comunio.de/communities/' + self.communityid + '/standings',
                                         headers=self.standard_header, params=params_standings)
 
+        if request_standing.status_code == 401:
+            raise InvalidAccessToken("Invalid access token!")
+
         json_data = json.loads(request_standing.text)
 
         tempid = ''
@@ -175,6 +180,9 @@ class Comunio:
         params_standings = (('period', 'season'),)
         request_standing = requests.get('https://api.comunio.de/communities/' + self.communityid + '/standings',
                                         headers=self.standard_header, params=params_standings)
+
+        if request_standing.status_code == 401:
+            raise InvalidAccessToken("Invalid access token!")
 
         json_data = json.loads(request_standing.text)
         tempid = ''
@@ -238,6 +246,10 @@ class Comunio:
 
         request_info = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad-latest',
                                     headers=self.standard_header)
+
+        if request_info.status_code == 401:
+            raise InvalidAccessToken("Provided access token is invalid!")
+
         json_data = json.loads(request_info.text)
 
         wealth = json_data['matchday']['budget']
@@ -260,6 +272,8 @@ class Comunio:
 
         squad_request = requests.get('https://api.comunio.de/users/' + str(userid) + '/squad',
                                      headers=self.standard_header)
+        if squad_request.status_code == 401:
+            raise InvalidAccessToken("Provided access token is invalid!")
 
         json_data = squad_request.json()
 
@@ -294,7 +308,7 @@ class Comunio:
 if __name__ == '__main__':
     comunio = Comunio()
     if comunio.login(username='', password=''):
-        print(comunio.get_auth_token())
+        print(comunio.get_auth_info())
         wealth = comunio.get_wealth(userid=13119719)
         print(wealth)
 

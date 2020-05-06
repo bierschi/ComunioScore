@@ -43,12 +43,14 @@ class ComunioDB(DBHandler, Thread):
         self.__comunio_login()
 
         # delete data from database tables
+        self.delete_auth()
         self.delete_comunio_user()
         self.delete_squad()
 
         sleep(1)
 
         # insert comunio data into database tables
+        self.insert_auth()
         self.insert_comunio_user()
         self.insert_squad()
 
@@ -57,6 +59,7 @@ class ComunioDB(DBHandler, Thread):
             sleep(self.update_frequence)  # updates data every 6h (21600)
 
             self.__comunio_login()
+            self.insert_auth()
             self.update_comunio_user()
             self.update_squad()
 
@@ -65,8 +68,8 @@ class ComunioDB(DBHandler, Thread):
 
         """
         while not self.comunio.login(username=self.comunio_username, password=self.comunio_password):
-            self.logger.error("Could not login to comunio, wait 120s")
-            sleep(120)
+            self.logger.error("Could not login to comunio, wait 60s")
+            sleep(60)
 
     def insert_comunio_user(self):
         """ insert comunio user into database
@@ -165,7 +168,11 @@ class ComunioDB(DBHandler, Thread):
 
         self.logger.info("Deleting {} data from database".format(self.comunioscore_table_squad))
 
-        sql = "truncate {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
+        if self.postgres:
+            sql = "truncate {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
+        else:
+            sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
+
         try:
             self.dbinserter.sql(sql=sql, autocommit=True)
         except DBInserterError as ex:
@@ -183,8 +190,8 @@ class ComunioDB(DBHandler, Thread):
         exp_ts_utc = int(str(time()).split('.')[0]) + int(auth['expires_in'])
         exp_dt = datetime.datetime.fromtimestamp(exp_ts_utc)
 
-        sql = "insert into {}.auth (timestamp_utc, datetime, expires_in, expire_timestamp_utc, expire_datetime, " \
-              "access_token, token_type, refresh_token) values (%s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema)
+        sql = "insert into {}.{} (timestamp_utc, datetime, expires_in, expire_timestamp_utc, expire_datetime, " \
+              "access_token, token_type, refresh_token) values (%s, %s, %s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema, self.comunioscore_table_auth)
 
         try:
             self.dbinserter.row(sql=sql, data=(ts_utc, dt, auth['expires_in'], exp_ts_utc, exp_dt, auth['access_token'],
@@ -198,7 +205,8 @@ class ComunioDB(DBHandler, Thread):
         """
         self.logger.info("Deleting auth data from database")
 
-        sql = "delete from {}.auth".format(self.comunioscore_schema)
+        sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_auth)
+
         try:
             self.dbinserter.sql(sql=sql)
         except DBInserterError as ex:
@@ -220,7 +228,9 @@ class ComunioDB(DBHandler, Thread):
         user_sql = "select userid from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
         linedup_sql = "update {}.{} set linedup = %s where userid = %s and playername = %s".format(self.comunioscore_schema, self.comunioscore_table_squad)
 
+        # ensure the access token is valid
         self.__comunio_login()
+
         comunio_users = self.dbfetcher.all(sql=user_sql)
         for user in comunio_users:
             userid = user[0]

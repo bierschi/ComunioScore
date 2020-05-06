@@ -21,7 +21,7 @@ class ComunioScore:
             cs.run(host=host, port=port)
 
     """
-    def __init__(self, name, comunio_user, comunio_pass, token, season_date, **dbparams):
+    def __init__(self, name, comunio_user, comunio_pass, token, chatid, season_date, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioScore')
 
@@ -29,6 +29,7 @@ class ComunioScore:
         self.comunio_user = comunio_user
         self.comunio_pass = comunio_pass
         self.token = token
+        self.chatid = chatid
         self.season_date = season_date
 
         # defines the api handler methods
@@ -39,7 +40,7 @@ class ComunioScore:
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
         # create telegram instance
-        self.telegram = ComunioScoreTelegram(token=self.token)
+        self.telegram = ComunioScoreTelegram(token=self.token, chat_id=self.chatid)
 
         # create ComunioDB instance
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
@@ -84,7 +85,8 @@ def main():
 
     # ComuniScore usage
     usage1 = "ComunioScore args --host 127.0.0.1 --port 8086 --dbhost 127.0.01 --dbport 5432 --dbuser john " \
-             "--dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token adfefad"
+             "--dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token adfefad " \
+             "--chatid 18539452"
 
     usage2 = "ComunioScore config --file /etc/comunioscore/comunioscore.ini"
 
@@ -100,27 +102,30 @@ def main():
     args_parser   = subparser.add_parser('args', help='Use pure command line arguments')
 
     # argument for the configfile
-    config_parser.add_argument('-f', '--file', type=str, help='Path to the configuration file')
+    config_parser.add_argument('--file',      type=str, help='Path to the configuration file')
 
     # arguments for the server
-    args_parser.add_argument('-ho', '--host',      type=str, help='hostname for the application')
-    args_parser.add_argument('-po', '--port',      type=int, help='port for the application')
+    args_parser.add_argument('--host',        type=str, help='hostname for the application')
+    args_parser.add_argument('--port',        type=int, help='port for the application')
 
     # arguments  for the database
-    args_parser.add_argument('-H', '--dbhost',     type=str, help='Hostname for the database connection', required=True)
-    args_parser.add_argument('-P', '--dbport',     type=int, help='Port for the database connection',     required=True)
-    args_parser.add_argument('-U', '--dbuser',     type=str, help='User for the database connection',     required=True)
-    args_parser.add_argument('-p', '--dbpassword', type=str, help='Password from the user',               required=True)
-    args_parser.add_argument('-DB', '--dbname',    type=str, help='Database name',                        required=True)
+    args_parser.add_argument('--dbhost',      type=str, help='Hostname for the database connection')
+    args_parser.add_argument('--dbport',      type=int, help='Port for the database connection')
+    args_parser.add_argument('--dbuser',      type=str, help='User for the database connection')
+    args_parser.add_argument('--dbpassword',  type=str, help='Password from the user')
+    args_parser.add_argument('--dbname',      type=str, help='Database name')
 
     # arguments for comunio login
-    args_parser.add_argument('-cu', '--comunio_user', type=str, help='User for the comunio login',        required=True)
-    args_parser.add_argument('-cp', '--comunio_pass', type=str, help='Password for the comunio login',    required=True)
+    args_parser.add_argument('--comunio_user', type=str, help='User for the comunio login',        required=True)
+    args_parser.add_argument('--comunio_pass', type=str, help='Password for the comunio login',    required=True)
 
-    args_parser.add_argument('-t', '--token', type=str, help='Telegram token')
+    # arguments for telegram
+    args_parser.add_argument('--token',        type=str, help='Telegram token')
+    args_parser.add_argument('--chatid',       type=int,  help='Telegram chat id')
+    args_parser.add_argument('--season',       type=str,  help='Season start date')
 
     # argument for the current version
-    parser.add_argument('-v', '--version', action='version', version=__version__, help='show the current version')
+    parser.add_argument('-v', '--version',     action='version', version=__version__, help='show the current version')
 
     # parse all arguments
     args = parser.parse_args()
@@ -140,6 +145,21 @@ def main():
             comunio_user = config.get('comunio', 'username')
             comunio_pass = config.get('comunio', 'password')
 
+            # server section
+            host = config.get('server', 'host')
+            port = config.getint('server', 'port')
+
+            # telegram section
+            token = config.get('telegram', 'token')
+            chatid = config.getint('telegram', 'chatid')
+
+            # season start date
+            season_date = config.get('season', 'startdate')
+
+        except (NoOptionError, NoSectionError) as ex:
+            print(ex)
+            exit(1)
+        try:
             # database section
             dbhost     = config.get('database', 'host')
             dbport     = config.getint('database', 'port')
@@ -147,17 +167,10 @@ def main():
             dbpassword = config.get('database', 'password')
             dbname     = config.get('database', 'dbname')
 
-            # server section
-            host = config.get('server', 'host')
-            port = config.getint('server', 'port')
+        except (NoOptionError, NoSectionError, ValueError) as ex:
+            print("Sqlite database will be used!")
+            dbhost = dbport = dbusername = dbpassword = dbname = None
 
-            # telegram section
-            token = config.get('telegram', 'token')
-            season_date = config.get('season', 'startdate')
-
-        except (NoOptionError, NoSectionError) as ex:
-            print(ex)
-            exit(1)
     else:
         # parse command line arguments
         if args.host is None:
@@ -170,6 +183,11 @@ def main():
         else:
             port = args.port
 
+        if args.season is None:
+            season_date = '2019-08-20'
+        else:
+            season_date = args.season
+
         dbhost = args.dbhost
         dbport = args.dbport
         dbusername = args.dbuser
@@ -180,6 +198,7 @@ def main():
         comunio_pass = args.comunio_pass
 
         token = args.token
+        chatid = args.chatid
 
     dbparams.update({'host': dbhost, 'port': dbport, 'username': dbusername, 'password': dbpassword,
                      'dbname': dbname})
@@ -190,7 +209,7 @@ def main():
 
     # create application instance
     cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token,
-                      season_date=season_date, **dbparams)
+                      chatid=chatid, season_date=season_date, **dbparams)
 
     # run the application
     cs.run(host=host, port=port)

@@ -16,13 +16,16 @@ class DBHandler:
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class DBHandler')
 
-        if ('host' and 'port' and 'username' and 'password' and 'dbname') in dbparams.keys():
+        # check db params
+        if (('host' and 'port' and 'username' and 'password' and 'dbname') in dbparams.keys()) and \
+                (all(value is not None for value in dbparams.values())):
             self.db_host     = dbparams['host']
             self.db_port     = dbparams['port']
             self.db_username = dbparams['username']
             self.db_password = dbparams['password']
             self.db_name     = dbparams['dbname']
 
+            # connect to postgres database
             if DBConnector.connect_psycopg(host=self.db_host, port=self.db_port, username=self.db_username,
                                            password=self.db_password, dbname=self.db_name, minConn=1, maxConn=39):
 
@@ -36,16 +39,36 @@ class DBHandler:
                 self.comunioscore_table_squad = "squad"
                 self.comunioscore_table_season = "season"
                 self.comunioscore_table_points = "points"
+                self.postgres = True
 
                 # at start create all necessary tables for comunioscore
                 self.__create_tables_for_communioscore()
 
             else:
-                self.logger.error("DBHandler could not connect to the databases")
-                raise DBConnectorError("DBHandler could not connect to the databases")
+                self.logger.error("DBHandler could not connect to the postgres database")
+                raise DBConnectorError("DBHandler could not connect to the postgres database")
         else:
-            self.logger.error("DBHandler could not connect to the databases")
-            raise DBConnectorError("DBHandler could not connect to the databases")
+            path = '/var/log/ComunioScore/comunioscore.db'
+
+            if DBConnector.connect_sqlite(path=path):
+
+                self.dbcreator = DBCreator()
+                self.dbinserter = DBInserter()
+                self.dbfetcher = DBFetcher()
+
+                self.comunioscore_schema = "main"
+                self.comunioscore_table_auth = "auth"
+                self.comunioscore_table_user = "user"
+                self.comunioscore_table_squad = "squad"
+                self.comunioscore_table_season = "season"
+                self.comunioscore_table_points = "points"
+                self.postgres = False
+
+                # at start create all necessary tables for comunioscore
+                self.__create_tables_for_communioscore()
+            else:
+                self.logger.error("DBHandler could not connect to the sqlite database")
+                raise DBConnectorError("DBHandler could not connect to the sqlite database")
 
     def __create_tables_for_communioscore(self):
         """ creates all necessary tables for application communioscore
@@ -53,8 +76,9 @@ class DBHandler:
         """
 
         # create schema if not exists comunioscore
-        self.logger.info("Create Schema {}".format(self.comunioscore_schema))
-        self.dbcreator.build(obj=Schema(name=self.comunioscore_schema))
+        if self.postgres:
+            self.logger.info("Create Schema {}".format(self.comunioscore_schema))
+            self.dbcreator.build(obj=Schema(name=self.comunioscore_schema))
 
         # create table if not exists auth
         self.logger.info("Create Table {}".format(self.comunioscore_table_auth))
