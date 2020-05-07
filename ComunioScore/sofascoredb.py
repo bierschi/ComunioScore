@@ -168,12 +168,16 @@ class SofascoreDB(DBHandler, Thread):
         self.logger.info("Set next_match_day to {}".format(next_match_day))
 
         match_sql = "select * from {}.{} where match_day=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
+        postponed_matches_sql = "select * from {}.{} where match_day<%s and match_type='notstarted'".format(self.comunioscore_schema, self.comunioscore_table_season)
         #next_match_day = 25
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
-        if len(match_day_data) > 9:
-            self.logger.error("length of match day data is greater than 9!! Length: {}".format(len(match_day_data)))
+        postponed_matches_data = self.dbfetcher.all(sql=postponed_matches_sql, data=(next_match_day, ))
+
+        if len(match_day_data) > 18:
+            self.logger.error("length of match day data is greater than 18!! Length: {}".format(len(match_day_data)))
         else:
             if self.matchscheduler_event_handler:
+                # register weekly matchday data
                 self.logger.info("Start registering {} matches for match day {}".format(len(match_day_data), next_match_day))
                 for (i, match) in enumerate(match_day_data):
                     # TODO Uncomment and change 'postponed' with 'notstarted'
@@ -186,6 +190,10 @@ class SofascoreDB(DBHandler, Thread):
                         self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
 
                 self.logger.info("Finished registering matches for match day {}".format(next_match_day))
+
+                # register postponed matches data
+                for (i, match) in enumerate(postponed_matches_data):
+                    self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6], postponed=True)
             else:
                 self.logger.error("No matchscheduler event handler registered!!")
 
