@@ -110,7 +110,7 @@ cp_service_file() {
 
 remove_setup_dist_files() {
 
-  sudo rm -r dist/ build/ ComunioScore.egg-info
+  sudo rm -r build/ ComunioScore.egg-info/
 
 }
 
