@@ -77,7 +77,7 @@ set_version() {
 # build the whl file
 build_wheel_file(){
 
-  sudo python3 setup.py bdist_wheel
+  python3 setup.py bdist_wheel
 
 }
 
@@ -110,7 +110,7 @@ cp_service_file() {
 
 remove_setup_dist_files() {
 
-  sudo rm -r build/ ComunioScore.egg-info/
+  rm -r build/ ComunioScore.egg-info/
 
 }
 
@@ -122,7 +122,7 @@ build_deb_package() {
 
 remove_etc_folder() {
 
-  sudo rm -r dist_package/ComunioScore_deb/etc/
+  rm -r dist_package/ComunioScore_deb/etc/
 
 }
 
