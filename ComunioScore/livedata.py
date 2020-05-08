@@ -1,4 +1,5 @@
 import logging
+import unicodedata
 from time import sleep
 from threading import Lock
 from difflib import SequenceMatcher
@@ -253,7 +254,7 @@ class LiveData(DBHandler):
 
                     # compare comunio player name with sofascore player name
                     if ((comunioplayername_surename == awayplayer_surename) or
-                            (SequenceMatcher(None, comunioplayername_surename, awayplayer_surename).ratio() > 0.74)):
+                            (SequenceMatcher(None, comunioplayername_surename, awayplayer_surename).ratio() > 0.77)):
                         if comunioplayername_forename:
                             if (comunioplayername_forename == awayplayer_forename[:len(comunioplayername_forename)]):
                                 user_squad_dict['squad'].append(self.get_player_data(playername=awayplayer_name,
@@ -326,7 +327,11 @@ class LiveData(DBHandler):
             playername_forename = ''
             playername_surename = ''
 
-        return playername_forename, playername_surename
+        # remove accents
+        nfkd_form = unicodedata.normalize('NFKD', playername_surename)
+        playername_surename_accents = u"".join([c for c in nfkd_form if not unicodedata.name(c).endswith('ACCENT')])
+
+        return playername_forename, playername_surename_accents
 
     def prepare_telegram_message(self, livedata, home_team, away_team, match_day, match_id):
         """ prepares the livedata for a new telegram message
