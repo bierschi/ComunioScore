@@ -101,7 +101,7 @@ class TestComunio(unittest.TestCase):
         # check if community_id is string
         self.assertIsInstance(community_id, str, msg="community_id must be type of string")
 
-    def test_get_get_community_name(self):
+    def test_get_community_name(self):
 
         community_name = self.comunio.get_community_name()
         # check if community_name is string
