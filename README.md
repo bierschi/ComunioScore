@@ -81,14 +81,19 @@ sudo dpkg -i ComunioScore_*.deb
 logs can be found in `/var/log/ComunioScore`
 
 ## Troubleshooting
-add your current user to group `syslog`, this allows the application to create a folder in
+- add your current user to group `syslog`, this allows the application to create a folder in
 `/var/log`. Replace `<user>` with your current user
 <pre><code>
 sudo adduser &lt;user&gt; syslog
 </code></pre>
 to apply this change, log out and log in again and check with the command `groups` <br>
 
-To use pythons build in sqlite database, leave the `[database]` section in the config file empty
+- To use pythons build in sqlite database, leave the `[database]` section in the config file empty
+
+- If error occurs due to missing pg_config executable, install the `libpq-dev` package
+<pre><code>
+sudo apt-get install libpq-dev
+</code></pre>
 
 ## Changelog
 All changes and versioning information can be found in the [CHANGELOG](https://github.com/bierschi/ComunioScore/blob/master/CHANGELOG.rst)
