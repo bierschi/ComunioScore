@@ -36,13 +36,7 @@ pipeline {
                     steps {
                         echo 'Build Distribution Packages'
                         dir('dist_package'){
-                            sh 'sudo ./build_package.sh --wheel --debian'
-                        }
-                    }
-                    post {
-                        success {
-                            echo 'Install package ComunioScore'
-                            sh 'sudo python3 setup.py install'
+                            sh './build_package.sh --wheel --debian'
                         }
                     }
                  }
