@@ -39,12 +39,6 @@ pipeline {
                             sh './build_package.sh --wheel --debian'
                         }
                     }
-                    post {
-                        success {
-                            echo 'Install package ComunioScore'
-                            sh 'sudo python3 setup.py install'
-                        }
-                    }
                  }
 
                  stage('Deploy') {
