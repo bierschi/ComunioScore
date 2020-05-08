@@ -25,6 +25,7 @@ setup(
     package_data={'ComunioScore': ['config/comunioscore.ini']},
     install_requires=required,
     keywords=["Comunio", "Sofascore", "Rating", "Score"],
+    python_requires=">=3",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
