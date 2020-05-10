@@ -1,9 +1,9 @@
 ## Maps the [sofascore](https://www.sofascore.com/de/) rating to [comunio](https://www.comunio.de/home) players
 [![Build Status](https://travis-ci.org/bierschi/ComunioScore.png?branch=master)](https://travis-ci.org/bierschi/ComunioScore) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-- get current ranking of all comunio players
-- periodic messages for player rating, goals and offs
-- messenger integration to share it in groups chat with friends
-- supports postgresql and sqlite databases
+- Get current ranking of all comunio players
+- Periodic messages for player rating, goals and offs
+- Messenger integration to share it in groups chat with friends
+- Supports postgresql and sqlite databases
 
 ## Installation
 
@@ -61,6 +61,9 @@ chatid=
 
 [season]
 startdate=
+
+[logging]
+dir=/var/log/
 </code></pre>
 
 

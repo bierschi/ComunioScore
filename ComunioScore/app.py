@@ -124,6 +124,9 @@ def main():
     args_parser.add_argument('--chatid',       type=int,  help='Telegram chat id')
     args_parser.add_argument('--season',       type=str,  help='Season start date')
 
+    # argument for the logging folder
+    parser.add_argument('-L', '--log_dir',   type=str, help='Logging directory for the application')
+
     # argument for the current version
     parser.add_argument('-v', '--version',     action='version', version=__version__, help='show the current version')
 
@@ -155,6 +158,9 @@ def main():
 
             # season start date
             season_date = config.get('season', 'startdate')
+
+            # logging directory
+            log_dir = config.get('logging', 'dir')
 
         except (NoOptionError, NoSectionError) as ex:
             print(ex)
@@ -188,6 +194,11 @@ def main():
         else:
             season_date = args.season
 
+        if args.log_dir is None:
+            log_dir = '/var/log/'
+        else:
+            log_dir = args.log_dir
+
         dbhost = args.dbhost
         dbport = args.dbport
         dbusername = args.dbuser
@@ -204,7 +215,7 @@ def main():
                      'dbname': dbname})
 
     # set up logger instance
-    logger = Logger(name='ComunioScore', level='info', log_folder='/var/log/')
+    logger = Logger(name='ComunioScore', level='info', log_folder=log_dir)
     logger.info("Start application ComunioScore")
 
     # create application instance
