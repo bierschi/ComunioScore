@@ -91,9 +91,7 @@ class LiveData(DBHandler):
         # update linedup comunio players in database before sending livedata
         self.update_linedup_squad()
 
-        # collect livedata as long as match is not finished
-        #while self.running:
-        while not self.bundesliga.is_finished(matchid=match_id):
+        def update_livedata():
 
             # get all comunio players of interest for sofascore rating
             players_of_interest_for_match = self.set_comunio_players_of_interest_for_match(home_team=home_team, away_team=away_team)
@@ -120,7 +118,15 @@ class LiveData(DBHandler):
                 self.telegram_send_event_handler(text=livedata_msg)
                 self.telegram_lock.release()
 
+        # collect livedata as long as match is not finished
+        #while self.running:
+        while not self.bundesliga.is_finished(matchid=match_id):
+            update_livedata()
             sleep(self.msg_rate)
+
+        # update livedata for the last time
+        if self.bundesliga.is_finished(matchid=match_id):
+            update_livedata()
 
         # after match is finished
         live_data_end_msg = "Finished fetching live data from match *{}* vs *{}*".format(home_team, away_team)
@@ -429,7 +435,9 @@ class LiveData(DBHandler):
                     points_match = points_rating + points_goal + points_offs
                     points_all += points_match
                 else:
-                    self.logger.error("Invalid None points: {}".format(match))
+                    #self.logger.error("Invalid None points: {}".format(match))
+                    pass
+
             sum_points[username] = points_all
 
         # sort dict by key

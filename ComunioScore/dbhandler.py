@@ -127,6 +127,7 @@ class DBHandler:
                                        Column(name="homeScore", type="text"),
                                        Column(name="awayScore", type="text"),
                                        Column(name="season", type="text"),
+                                       Column(name="scheduled", type="text"),
                                        schema=self.comunioscore_schema))
 
         # create table if not exists points
