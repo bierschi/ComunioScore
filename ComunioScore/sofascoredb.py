@@ -56,6 +56,7 @@ class SofascoreDB(DBHandler, Thread):
         sleep(1)
         self.insert_points()
         sleep(1)
+        self.query_match_data()
         self.logger.info("Start sofascoredb run thread!")
 
         while self.running:
@@ -92,7 +93,7 @@ class SofascoreDB(DBHandler, Thread):
         self.logger.info("Insert season data into database")
 
         sql = "insert into {}.{} (match_day, match_type, match_id, start_timestamp, start_datetime, homeTeam, " \
-              "awayTeam, homeScore, awayScore, season) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
+              "awayTeam, homeScore, awayScore, season, scheduled) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
                self.comunioscore_schema, self.comunioscore_table_season)
 
         self.season_data = self.bundesliga.season_data()
@@ -101,7 +102,7 @@ class SofascoreDB(DBHandler, Thread):
         for matchday in self.season_data:
             start_dt = datetime.datetime.fromtimestamp(matchday['startTimestamp'])
             season_list.append((matchday['matchDay'], matchday['type'], matchday['matchId'], matchday['startTimestamp'],
-                                start_dt, matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore'], self.bundesliga.season_year))
+                                start_dt, matchday['homeTeam'], matchday['awayTeam'], matchday['homeScore'], matchday['awayScore'], self.bundesliga.season_year, False))
 
         try:
             self.dbinserter.many_rows(sql=sql, datas=season_list)
@@ -151,7 +152,16 @@ class SofascoreDB(DBHandler, Thread):
         if last_match_day is None:
             return None
         else:
-            return last_match_day[0]
+            # check if 9 matches are already finished
+            finished_sql = "select match_day from {}.{} where match_type='finished' and match_day=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
+
+            last_match_day = last_match_day[0]
+            matches_finished_list = self.dbfetcher.all(sql=finished_sql, data=(last_match_day, ))
+
+            if len(matches_finished_list) == 9:
+                return last_match_day
+            else:
+                return last_match_day - 1
 
     def query_match_data(self):
         """ queries the match day data from season table and registers new match events
@@ -160,6 +170,7 @@ class SofascoreDB(DBHandler, Thread):
         self.logger.info("Query match data from database")
 
         last_match_day = self.get_last_match_day()
+
         if last_match_day is None:
             next_match_day = 1
         else:
@@ -167,35 +178,46 @@ class SofascoreDB(DBHandler, Thread):
 
         self.logger.info("Set next_match_day to {}".format(next_match_day))
 
-        match_sql = "select * from {}.{} where match_day=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
-        postponed_matches_sql = "select * from {}.{} where match_day<%s and match_type='notstarted'".format(self.comunioscore_schema, self.comunioscore_table_season)
+        match_sql = "select * from {}.{} where match_day=%s and scheduled='false'".format(self.comunioscore_schema, self.comunioscore_table_season)
+        postponed_matches_sql = "select * from {}.{} where match_day<%s and match_type='notstarted' and scheduled='false'".format(self.comunioscore_schema, self.comunioscore_table_season)
         #next_match_day = 26
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
         postponed_matches_data = self.dbfetcher.all(sql=postponed_matches_sql, data=(next_match_day, ))
 
-        if len(match_day_data) > 18:
-            self.logger.error("length of match day data is greater than 18!! Length: {}".format(len(match_day_data)))
+        if self.matchscheduler_event_handler:
+            # register weekly matchday data
+            self.logger.info("Start registering {} matches for match day {}".format(len(match_day_data), next_match_day))
+            for (i, match) in enumerate(match_day_data):
+
+                if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
+                    self.logger.error("Not registering match day {}: {} vs. {} because match is {}".format(match[0], match[5], match[6], match[1]))
+
+                elif match[1] in ('notstarted', 'inprogress'):  # notstarted, inprogress are the normal match types for new events
+                    self.update_scheduled_match(match_day=match[0], match_id=match[2])
+                    self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
+                else:
+                    self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
+
+            self.logger.info("Finished registering matches for match day {}".format(next_match_day))
+
+            # register postponed matches data
+            for (i, match) in enumerate(postponed_matches_data):
+                self.update_scheduled_match(match_day=match[0], match_id=match[2])
+                self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6], postponed=True)
         else:
-            if self.matchscheduler_event_handler:
-                # register weekly matchday data
-                self.logger.info("Start registering {} matches for match day {}".format(len(match_day_data), next_match_day))
-                for (i, match) in enumerate(match_day_data):
+            self.logger.error("No matchscheduler event handler registered!!")
 
-                    if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
-                        self.logger.error("Not registering match day {}: {} vs. {} because match is {}".format(match[0], match[5], match[6], match[1]))
+    def update_scheduled_match(self, match_day, match_id):
+        """
 
-                    elif match[1] == 'notstarted':  # notstarted is the normal match type for new events
-                        self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6])
-                    else:
-                        self.logger.error("Could not register new event for match day {} ({}): {} vs. {}".format(match[0], match[1], match[5], match[6]))
+        :return:
+        """
+        update_scheduled_sql = "update {}.{} set scheduled=%s where match_day=%s and match_id=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
 
-                self.logger.info("Finished registering matches for match day {}".format(next_match_day))
-
-                # register postponed matches data
-                for (i, match) in enumerate(postponed_matches_data):
-                    self.matchscheduler_event_handler(event_ts=match[3], match_day=match[0], match_id=match[2], home_team=match[5], away_team=match[6], postponed=True)
-            else:
-                self.logger.error("No matchscheduler event handler registered!!")
+        try:
+            self.dbinserter.row(sql=update_scheduled_sql, data=(True, match_day, match_id))
+        except DBInserterError as ex:
+            self.logger.error(ex)
 
     def insert_points(self):
         """ inserts all data into points table
