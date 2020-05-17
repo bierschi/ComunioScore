@@ -291,7 +291,7 @@ class BundesligaScore(SofaScore):
                 return False
         else:
             self.logger.error("no 'event' in self.get_match_data")
-            return True
+            return False
 
 
 if __name__ == '__main__':

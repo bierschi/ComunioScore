@@ -93,7 +93,7 @@ class LiveData(DBHandler):
 
         # collect livedata as long as match is not finished
         #while self.running:
-        while self.bundesliga.is_finished(matchid=match_id):
+        while not self.bundesliga.is_finished(matchid=match_id):
 
             # get all comunio players of interest for sofascore rating
             players_of_interest_for_match = self.set_comunio_players_of_interest_for_match(home_team=home_team, away_team=away_team)
