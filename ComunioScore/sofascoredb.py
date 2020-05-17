@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=7200, **dbparams):
+    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=2700, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -169,7 +169,7 @@ class SofascoreDB(DBHandler, Thread):
 
         match_sql = "select * from {}.{} where match_day=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
         postponed_matches_sql = "select * from {}.{} where match_day<%s and match_type='notstarted'".format(self.comunioscore_schema, self.comunioscore_table_season)
-        #next_match_day = 25
+        #next_match_day = 26
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
         postponed_matches_data = self.dbfetcher.all(sql=postponed_matches_sql, data=(next_match_day, ))
 
@@ -180,7 +180,7 @@ class SofascoreDB(DBHandler, Thread):
                 # register weekly matchday data
                 self.logger.info("Start registering {} matches for match day {}".format(len(match_day_data), next_match_day))
                 for (i, match) in enumerate(match_day_data):
-                    # TODO Uncomment and change 'postponed' with 'notstarted'
+
                     if match[1] in ('postponed', 'canceled'):  # log postponed or canceled match types
                         self.logger.error("Not registering match day {}: {} vs. {} because match is {}".format(match[0], match[5], match[6], match[1]))
 

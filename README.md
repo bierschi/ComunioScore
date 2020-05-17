@@ -1,9 +1,9 @@
 ## Maps the [sofascore](https://www.sofascore.com/de/) rating to [comunio](https://www.comunio.de/home) players
 [![Build Status](https://travis-ci.org/bierschi/ComunioScore.png?branch=master)](https://travis-ci.org/bierschi/ComunioScore) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-- get current ranking of all comunio players
-- periodic messages for player rating, goals and offs
-- messenger integration to share it in groups chat with friends
-- supports postgresql and sqlite databases
+- Get current ranking of all comunio players
+- Periodic messages for player rating, goals and offs
+- Messenger integration to share it in groups chat with friends
+- Supports postgresql and sqlite databases
 
 ## Installation
 
@@ -61,6 +61,9 @@ chatid=
 
 [season]
 startdate=
+
+[logging]
+dir=/var/log/
 </code></pre>
 
 
@@ -81,14 +84,19 @@ sudo dpkg -i ComunioScore_*.deb
 logs can be found in `/var/log/ComunioScore`
 
 ## Troubleshooting
-add your current user to group `syslog`, this allows the application to create a folder in
+- add your current user to group `syslog`, this allows the application to create a folder in
 `/var/log`. Replace `<user>` with your current user
 <pre><code>
 sudo adduser &lt;user&gt; syslog
 </code></pre>
 to apply this change, log out and log in again and check with the command `groups` <br>
 
-To use pythons build in sqlite database, leave the `[database]` section in the config file empty
+- To use pythons build in sqlite database, leave the `[database]` section in the config file empty
+
+- If error occurs due to missing pg_config executable, install the `libpq-dev` package
+<pre><code>
+sudo apt-get install libpq-dev
+</code></pre>
 
 ## Changelog
 All changes and versioning information can be found in the [CHANGELOG](https://github.com/bierschi/ComunioScore/blob/master/CHANGELOG.rst)
