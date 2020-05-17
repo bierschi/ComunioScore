@@ -8,3 +8,4 @@
 - 03.05.2020: Updated the version to 1.0.7
 - 06.05.2020: Updated the version to 1.0.8, Added sqlite database support
 - 08.05.2020: Updated the version to 1.0.9, Improved the SequenceMatcher comparison
+- 17.05.2020: Updated th version to 1.0.10
