@@ -282,7 +282,11 @@ class BundesligaScore(SofaScore):
 
         :return: bool, true or false
         """
-        events = self.get_match_data(match_id=matchid)
+        try:
+            events = self.get_match_data(match_id=matchid)
+        except SofascoreRequestError as ex:
+            self.logger.error(ex)
+            return False
         if 'event' in events:
             status = events['event']['status']['type']
             if status == 'finished':

@@ -16,6 +16,8 @@ class SofaScore:
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofaScore')
 
+        self.session = requests.Session()
+
         # urls to retrieve specific data
         self.date_url         = "https://www.sofascore.com/football//{date}/json"  # yyyy-mm-dd
         self.event_url        = "https://www.sofascore.com/event/{event_id}/json"
@@ -33,10 +35,10 @@ class SofaScore:
         :return: json dict
         """
         try:
-            resp = requests.get(url, headers=self.headers)
+            resp = self.session.get(url, headers=self.headers)
             status_code = resp.status_code
             if status_code == 403:
-                raise SofascoreRequestError("Could not load data from Sofascore API")
+                raise SofascoreRequestError("Forbidden to load data from Sofascore API")
 
             json_dict = resp.json()
             return json_dict

@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=2700, **dbparams):
+    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=7200, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -208,9 +208,8 @@ class SofascoreDB(DBHandler, Thread):
             self.logger.error("No matchscheduler event handler registered!!")
 
     def update_scheduled_match(self, match_day, match_id):
-        """
+        """ updates the scheduled attribute in the season table
 
-        :return:
         """
         update_scheduled_sql = "update {}.{} set scheduled=%s where match_day=%s and match_id=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
 

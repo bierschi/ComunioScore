@@ -16,7 +16,7 @@ class ComunioDB(DBHandler, Thread):
             comuniodb.start()
 
     """
-    def __init__(self, comunio_user, comunio_pass, update_frequence=21600, **dbparams):
+    def __init__(self, comunio_user, comunio_pass, update_frequence=7200, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioDB')
 
@@ -59,6 +59,7 @@ class ComunioDB(DBHandler, Thread):
             sleep(self.update_frequence)  # updates data every 6h (21600)
 
             self.__comunio_login()
+            self.delete_squad()
             self.insert_auth()
             self.update_comunio_user()
             self.update_squad()

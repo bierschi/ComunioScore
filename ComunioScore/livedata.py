@@ -31,6 +31,7 @@ class LiveData(DBHandler):
         self.running = True
         self.is_notify = True
         self.msg_rate = 10 * 60  # 10 min as default
+        self.msg_rate_timer = 0
 
         # bundesligascore instance
         self.bundesliga = BundesligaScore(season_date=self.season_date)
@@ -91,7 +92,7 @@ class LiveData(DBHandler):
         # update linedup comunio players in database before sending livedata
         self.update_linedup_squad()
 
-        def update_livedata():
+        def update_livedata(send=False):
 
             # get all comunio players of interest for sofascore rating
             players_of_interest_for_match = self.set_comunio_players_of_interest_for_match(home_team=home_team, away_team=away_team)
@@ -108,7 +109,7 @@ class LiveData(DBHandler):
             self.logger.info("Calculate points for match day {}: {} vs. {}".format(match_day, home_team, away_team))
             self.calculate_points_per_match(livedata=livedata, match_id=match_id, match_day=match_day)
 
-            if self.is_notify:
+            if self.is_notify and send:
                 # prepare the telegram message
                 self.logger.info("Prepare telegram message for match day {}: {} vs. {}".format(match_day, home_team, away_team))
                 livedata_msg = self.prepare_telegram_message(livedata=livedata, home_team=home_team, away_team=away_team,
@@ -121,8 +122,12 @@ class LiveData(DBHandler):
         # collect livedata as long as match is not finished
         #while self.running:
         while not self.bundesliga.is_finished(matchid=match_id):
-            update_livedata()
-            sleep(self.msg_rate)
+            if self.msg_rate_timer > self.msg_rate:
+                update_livedata(send=True)
+            else:
+                update_livedata(send=False)
+            sleep(180)  # update data every 3 minutes
+            self.msg_rate_timer += 180
 
         # update livedata for the last time
         if self.bundesliga.is_finished(matchid=match_id):
