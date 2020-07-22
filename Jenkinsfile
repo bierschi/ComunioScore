@@ -44,7 +44,7 @@ pipeline {
                  stage('Deploy') {
                     steps {
                         echo "Deploy ComunioScore to target server"
-                        sshPublisher(publishers: [sshPublisherDesc(configName: 'christian@server', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'sudo dpkg -i projects/ComunioScore/$BUILD_NUMBER/ComunioScore_*.deb', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: 'ComunioScore/$BUILD_NUMBER', remoteDirectorySDF: false, removePrefix: 'dist_package', sourceFiles: 'dist_package/*.deb')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                        sshPublisher(publishers: [sshPublisherDesc(configName: 'christian@host1-bierschi', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'sudo dpkg -i projects/ComunioScore/$BUILD_NUMBER/ComunioScore_*.deb', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: 'ComunioScore/$BUILD_NUMBER', remoteDirectorySDF: false, removePrefix: 'dist_package', sourceFiles: 'dist_package/*.deb')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
                     }
                 }
 
