@@ -1,8 +1,9 @@
 ## Maps the [sofascore](https://www.sofascore.com/de/) rating to [comunio](https://www.comunio.de/home) players
 [![Build Status](https://travis-ci.org/bierschi/ComunioScore.png?branch=master)](https://travis-ci.org/bierschi/ComunioScore) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-- Get current ranking of all comunio players
+- Get current ranking of all comunio user within the community
 - Periodic messages for player rating, goals and offs
 - Messenger integration to share it in groups chat with friends
+- Telegram conversation handler to make various settings
 - Supports postgresql and sqlite databases
 
 ## Installation
@@ -22,14 +23,14 @@ sudo python3 setup.py install
 
 ## Usage and Examples
 
-Print the available arguments for ComunioScore
+Print the available arguments for the ComunioScore Application
 <pre><code>
 ComunioScore --help
 </code></pre>
 
 Use it with pure command line arguments
 <pre><code>
-ComunioScore args --host 127.0.0.1 --port 8086 --dbhost 127.0.01 --dbport 5432 --dbuser john --dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token adfefad --chatid 18539452
+ComunioScore args --host 127.0.0.1 --port 8086 --dbhost 127.0.01 --dbport 5432 --dbuser john --dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token 34kdf4fad8fa8f --chatid 18539452 --season 2020-15-05 --scraperapikey 3543kf233fag3t
 </code></pre>
 
 Or with a configuration file
@@ -38,7 +39,7 @@ ComunioScore config --file /etc/comunioscore/comunioscore.ini
 </code></pre>
 
 
-edit the `comunioscore.ini` file and add credentials from comunio, telegram and postgres database:
+edit the `comunioscore.ini` file and add credentials for comunio, telegram and postgres database:
 <pre><code>
 [comunio]
 username=
@@ -64,6 +65,9 @@ startdate=
 
 [logging]
 dir=/var/log/
+
+[ScraperAPI]
+apikey=0df993rvf9afdsf93ra
 </code></pre>
 
 

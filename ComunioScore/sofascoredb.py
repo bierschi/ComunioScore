@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=2700, **dbparams):
+    def __init__(self, update_season_frequence=21600, query_match_data_frequence=7200, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -28,7 +28,6 @@ class SofascoreDB(DBHandler, Thread):
         self.update_season_frequence = update_season_frequence        # 21600 seconds (6h)
         self.query_match_data_frequence = query_match_data_frequence  # 7200 seconds (2h)
 
-        self.season_date = season_date
         self.running = True
 
         # event handler
@@ -40,7 +39,7 @@ class SofascoreDB(DBHandler, Thread):
         self.query_match_data_counter = 0
 
         # create BundesligaScore instance
-        self.bundesliga = BundesligaScore(season_date=self.season_date)
+        self.bundesliga = BundesligaScore()
 
         self.season_data = None
 
@@ -173,6 +172,9 @@ class SofascoreDB(DBHandler, Thread):
 
         if last_match_day is None:
             next_match_day = 1
+        elif last_match_day == 34:
+            self.logger.info("Last match day {} reached!".format(last_match_day))
+            return
         else:
             next_match_day = last_match_day + 1
 
@@ -208,9 +210,8 @@ class SofascoreDB(DBHandler, Thread):
             self.logger.error("No matchscheduler event handler registered!!")
 
     def update_scheduled_match(self, match_day, match_id):
-        """
+        """ updates the scheduled attribute in the season table
 
-        :return:
         """
         update_scheduled_sql = "update {}.{} set scheduled=%s where match_day=%s and match_id=%s".format(self.comunioscore_schema, self.comunioscore_table_season)
 
@@ -225,15 +226,15 @@ class SofascoreDB(DBHandler, Thread):
         """
         self.logger.info("Insert points data into database")
 
-        points_sql = "insert into {}.{} (userid, username, match_id, match_day, hometeam, awayteam) " \
+        points_sql = "insert into {}.{} (userid, login, match_id, match_day, hometeam, awayteam) " \
                      "values (%s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema, self.comunioscore_table_points)
 
         points_table_list = list()
         if self.comunio_user_data_event_handler:
-            player_standing = self.comunio_user_data_event_handler()
-            for player in player_standing:
-                userid = player['id']
-                username = player['name'].strip()
+            user_data = self.comunio_user_data_event_handler()
+            for user in user_data:
+                userid = user['id']
+                username = user['name']
                 for matchday in self.season_data:
                     points_table_list.append((userid, username, matchday['matchId'], matchday['matchDay'], matchday['homeTeam'], matchday['awayTeam']))
 

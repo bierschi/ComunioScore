@@ -10,30 +10,29 @@ class BundesligaScore(SofaScore):
 
     USAGE:
             buli = BundesligaScore()
+            buli.init_season_data(season_date='2019-08-15')
             buli.season_data()
     """
     season_name = None  # Bundesliga 19/20
     season_year = None  # 19/20
     season_id   = None  # 23583
 
-    def __init__(self, season_date):
+    def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class BundesligaScore')
 
         # init base class
         super().__init__()
 
-        self.season_date = season_date
-
-        self.__check_season_data()
-
+        self.season_date = None
         self.matchday_data_list = None
 
-    def __check_season_data(self):
+    def init_season_data(self, season_date):
         """ checks if season data are set
 
         """
         if BundesligaScore.season_name is None:
+            self.season_date = season_date
             self.__set_current_season()
         else:
             self.logger.info("Season data already set!")
@@ -57,7 +56,7 @@ class BundesligaScore(SofaScore):
                     query_date_day = str(date_day + i)
 
                 if self.__get_current_season_data(date="{}-{}-{}".format(date_year, date_month, query_date_day)):
-                    self.logger.info("Set current season data to {}".format(self.season_name))
+                    self.logger.info("Set current season data to {}".format(BundesligaScore.season_name))
                     break
                 else:
                     sleep(1)
@@ -282,7 +281,11 @@ class BundesligaScore(SofaScore):
 
         :return: bool, true or false
         """
-        events = self.get_match_data(match_id=matchid)
+        try:
+            events = self.get_match_data(match_id=matchid)
+        except SofascoreRequestError as ex:
+            self.logger.error(ex)
+            return False
         if 'event' in events:
             status = events['event']['status']['type']
             if status == 'finished':
@@ -295,6 +298,7 @@ class BundesligaScore(SofaScore):
 
 
 if __name__ == '__main__':
-    b = BundesligaScore(season_date="2019-08-18")
+    b = BundesligaScore()
+    b.init_season_data(season_date="2019-08-18")
     print(b.lineup_from_match_id(match_id=8272182))
     #print(b.is_finished(8272006))

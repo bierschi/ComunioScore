@@ -7,6 +7,7 @@ from ComunioScore.routes import Router
 from ComunioScore import APIHandler, ComunioDB, SofascoreDB
 from ComunioScore.livedata import LiveData
 from ComunioScore.matchscheduler import MatchScheduler
+from ComunioScore.score import SofaScore, BundesligaScore
 from ComunioScore.messenger import ComunioScoreTelegram
 from ComunioScore.utils import Logger
 from ComunioScore import __version__
@@ -21,7 +22,7 @@ class ComunioScore:
             cs.run(host=host, port=port)
 
     """
-    def __init__(self, name, comunio_user, comunio_pass, token, chatid, season_date, **dbparams):
+    def __init__(self, name, comunio_user, comunio_pass, token, chatid, season_date, api_key, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioScore')
 
@@ -31,22 +32,27 @@ class ComunioScore:
         self.token = token
         self.chatid = chatid
         self.season_date = season_date
+        self.api_key = api_key
 
-        # defines the api handler methods
+        # create the APIHandler instance
         self.api = APIHandler()
+
+        # init SofaScore scraper client and Bundesliga season data
+        SofaScore.init_scraper(api_key=self.api_key)
+        BundesligaScore().init_season_data(season_date=self.season_date)
 
         # router instance for specific endpoints
         self.router = Router(name=self.name)
         self.router.add_endpoint('/', 'index', method="GET", handler=self.api.index)
 
-        # create telegram instance
+        # create ComunioScoreTelegram instance
         self.telegram = ComunioScoreTelegram(token=self.token, chat_id=self.chatid)
 
         # create ComunioDB instance
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
 
         # create LiveData instance
-        self.livedata = LiveData(season_date=self.season_date, **dbparams)
+        self.livedata = LiveData(**dbparams)
         self.livedata.register_update_squad_event_handler(func=self.comuniodb.update_linedup_squad)
         self.livedata.register_telegram_send_event_handler(func=self.telegram.new_msg)
 
@@ -60,7 +66,7 @@ class ComunioScore:
         self.matchscheduler.register_livedata_event_handler(func=self.livedata.fetch)
 
         # create SofascoreDB instance
-        self.sofascoredb = SofascoreDB(season_date=self.season_date, **dbparams)
+        self.sofascoredb = SofascoreDB(**dbparams)
         self.sofascoredb.register_matchscheduler_event_handler(func=self.matchscheduler.new_event)
         self.sofascoredb.register_comunio_user_data(func=self.comuniodb.get_comunio_user_data)
 
@@ -73,10 +79,13 @@ class ComunioScore:
         """
         # start comuniodb run thread
         self.comuniodb.start()
+
         # start sofascoredb run thread
         self.sofascoredb.start()
+
         # start telegram polling
         self.telegram.run()
+
         self.logger.info("running application on port: {}".format(port))
         self.router.run(host=host, port=port, debug=debug)
 
@@ -85,8 +94,8 @@ def main():
 
     # ComuniScore usage
     usage1 = "ComunioScore args --host 127.0.0.1 --port 8086 --dbhost 127.0.01 --dbport 5432 --dbuser john " \
-             "--dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token adfefad " \
-             "--chatid 18539452"
+             "--dbpassword jane --dbname comunioscore --comunio_user john --comunio_pass jane --token 3535226tg4f4f5 " \
+             "--chatid 18539452 --scraperapikey d320282028820298"
 
     usage2 = "ComunioScore config --file /etc/comunioscore/comunioscore.ini"
 
@@ -105,8 +114,8 @@ def main():
     config_parser.add_argument('--file',      type=str, help='Path to the configuration file')
 
     # arguments for the server
-    args_parser.add_argument('--host',        type=str, help='hostname for the application')
-    args_parser.add_argument('--port',        type=int, help='port for the application')
+    args_parser.add_argument('--host',        type=str, help='hostname for the application', default='0.0.0.0')
+    args_parser.add_argument('--port',        type=int, help='port for the application', default=8086)
 
     # arguments  for the database
     args_parser.add_argument('--dbhost',      type=str, help='Hostname for the database connection')
@@ -122,10 +131,13 @@ def main():
     # arguments for telegram
     args_parser.add_argument('--token',        type=str, help='Telegram token')
     args_parser.add_argument('--chatid',       type=int,  help='Telegram chat id')
-    args_parser.add_argument('--season',       type=str,  help='Season start date')
+    args_parser.add_argument('--season',       type=str,  help='Season start date', default='2019-08-20')
+
+    # argument for scraper api key
+    args_parser.add_argument('--scraperapikey', type=str, help='API Key from ScraperAPI')
 
     # argument for the logging folder
-    parser.add_argument('-L', '--log_dir',   type=str, help='Logging directory for the application')
+    parser.add_argument('-L', '--log_dir',   type=str, help='Logging directory for the application', default='/var/log/')
 
     # argument for the current version
     parser.add_argument('-v', '--version',     action='version', version=__version__, help='show the current version')
@@ -156,11 +168,14 @@ def main():
             token = config.get('telegram', 'token')
             chatid = config.getint('telegram', 'chatid')
 
-            # season start date
+            # season section
             season_date = config.get('season', 'startdate')
 
-            # logging directory
+            # logging section
             log_dir = config.get('logging', 'dir')
+
+            # ScraperAPI section
+            api_key = config.get('ScraperAPI', 'apikey')
 
         except (NoOptionError, NoSectionError) as ex:
             print(ex)
@@ -179,48 +194,41 @@ def main():
 
     else:
         # parse command line arguments
-        if args.host is None:
-            host = '0.0.0.0'
-        else:
-            host = args.host
 
-        if args.port is None:
-            port = 8086
-        else:
-            port = args.port
-
-        if args.season is None:
-            season_date = '2019-08-20'
-        else:
-            season_date = args.season
-
-        if args.log_dir is None:
-            log_dir = '/var/log/'
-        else:
-            log_dir = args.log_dir
-
+        # database args
         dbhost = args.dbhost
         dbport = args.dbport
         dbusername = args.dbuser
         dbpassword = args.dbpassword
         dbname = args.dbname
 
+        # comunio args
         comunio_user = args.comunio_user
         comunio_pass = args.comunio_pass
 
+        # telegram args
         token = args.token
         chatid = args.chatid
+
+        # sofascore args
+        season_date = args.season
+
+        # logging directory
+        log_dir = args.log_dir
+
+        # scraper api key
+        api_key = args.scraperapikey
 
     dbparams.update({'host': dbhost, 'port': dbport, 'username': dbusername, 'password': dbpassword,
                      'dbname': dbname})
 
     # set up logger instance
     logger = Logger(name='ComunioScore', level='info', log_folder=log_dir)
-    logger.info("Start application ComunioScore")
+    logger.info("Start Application ComunioScore with version {}".format(__version__))
 
     # create application instance
     cs = ComunioScore(name="ComunioScore", comunio_user=comunio_user, comunio_pass=comunio_pass, token=token,
-                      chatid=chatid, season_date=season_date, **dbparams)
+                      chatid=chatid, season_date=season_date, api_key=api_key, **dbparams)
 
     # run the application
     cs.run(host=host, port=port)

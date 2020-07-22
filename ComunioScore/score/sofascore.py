@@ -1,7 +1,7 @@
 import logging
 import requests
 
-from ComunioScore.exceptions import SofascoreRequestError
+from scraper_api import ScraperAPIClient
 
 
 class SofaScore:
@@ -9,12 +9,17 @@ class SofaScore:
 
     USAGE:
             sofascore = SofaScore()
+            sofascore.init_scraper(api_key=api_key)
             sofascore.get_date_data(date="2019-09-22")
 
     """
+    scraper = None
+
     def __init__(self):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofaScore')
+
+        self.session = requests.Session()
 
         # urls to retrieve specific data
         self.date_url         = "https://www.sofascore.com/football//{date}/json"  # yyyy-mm-dd
@@ -25,6 +30,15 @@ class SofaScore:
 
         self.headers = {'Accept': 'application/json'}
 
+    @classmethod
+    def init_scraper(cls, api_key):
+        """ inits the scraper client
+
+        """
+
+        # create the ScraperAPIClient
+        cls.scraper = ScraperAPIClient(api_key)
+
     def __request_api(self, url):
         """ request data from sofascore url
 
@@ -33,14 +47,7 @@ class SofaScore:
         :return: json dict
         """
         try:
-            resp = requests.get(url, headers=self.headers)
-            status_code = resp.status_code
-            if status_code == 403:
-                raise SofascoreRequestError("Could not load data from Sofascore API")
-
-            json_dict = resp.json()
-            return json_dict
-
+            return SofaScore.scraper.get(url=url).json()
         except requests.exceptions.RequestException as ex:
             self.logger.error("Could no retrieve data from Sofascore: {}".format(ex))
             return {}
@@ -101,6 +108,7 @@ class SofaScore:
         :param season_id: unique id for sofascore
         :return: json dict
         """
+        # create correct url
         season_url = self.season_url.format(season_id=season_id)
 
         return self.__request_api(url=season_url)
