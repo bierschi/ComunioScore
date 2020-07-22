@@ -19,7 +19,7 @@ class LiveData(DBHandler):
     """
     is_squad_updated = False
 
-    def __init__(self, season_date, **dbparams):
+    def __init__(self, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class LiveData')
 
@@ -27,14 +27,13 @@ class LiveData(DBHandler):
         super().__init__(**dbparams)
 
         # set attributes
-        self.season_date = season_date
         self.running = True
         self.is_notify = True
         self.msg_rate = 10 * 60  # 10 min as default
         self.msg_rate_timer = 0
 
         # bundesligascore instance
-        self.bundesliga = BundesligaScore(season_date=self.season_date)
+        self.bundesliga = BundesligaScore()
 
         # create PointCalculator instance
         self.pointcalculator = PointCalculator()

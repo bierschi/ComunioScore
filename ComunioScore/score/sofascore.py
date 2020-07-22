@@ -9,6 +9,7 @@ class SofaScore:
 
     USAGE:
             sofascore = SofaScore()
+            sofascore.init_scraper(api_key=api_key)
             sofascore.get_date_data(date="2019-09-22")
 
     """
@@ -107,6 +108,7 @@ class SofaScore:
         :param season_id: unique id for sofascore
         :return: json dict
         """
+        # create correct url
         season_url = self.season_url.format(season_id=season_id)
 
         return self.__request_api(url=season_url)

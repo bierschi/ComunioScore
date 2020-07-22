@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, season_date, update_season_frequence=21600, query_match_data_frequence=7200, **dbparams):
+    def __init__(self, update_season_frequence=21600, query_match_data_frequence=7200, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -28,7 +28,6 @@ class SofascoreDB(DBHandler, Thread):
         self.update_season_frequence = update_season_frequence        # 21600 seconds (6h)
         self.query_match_data_frequence = query_match_data_frequence  # 7200 seconds (2h)
 
-        self.season_date = season_date
         self.running = True
 
         # event handler
@@ -40,7 +39,7 @@ class SofascoreDB(DBHandler, Thread):
         self.query_match_data_counter = 0
 
         # create BundesligaScore instance
-        self.bundesliga = BundesligaScore(season_date=self.season_date)
+        self.bundesliga = BundesligaScore()
 
         self.season_data = None
 
@@ -173,6 +172,9 @@ class SofascoreDB(DBHandler, Thread):
 
         if last_match_day is None:
             next_match_day = 1
+        elif last_match_day == 34:
+            self.logger.info("Last match day {} reached!".format(last_match_day))
+            return
         else:
             next_match_day = last_match_day + 1
 

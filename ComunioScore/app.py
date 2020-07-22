@@ -7,7 +7,7 @@ from ComunioScore.routes import Router
 from ComunioScore import APIHandler, ComunioDB, SofascoreDB
 from ComunioScore.livedata import LiveData
 from ComunioScore.matchscheduler import MatchScheduler
-from ComunioScore.score import SofaScore
+from ComunioScore.score import SofaScore, BundesligaScore
 from ComunioScore.messenger import ComunioScoreTelegram
 from ComunioScore.utils import Logger
 from ComunioScore import __version__
@@ -37,8 +37,9 @@ class ComunioScore:
         # create the APIHandler instance
         self.api = APIHandler()
 
-        # init SofaScore scraper client
+        # init SofaScore scraper client and Bundesliga season data
         SofaScore.init_scraper(api_key=self.api_key)
+        BundesligaScore().init_season_data(season_date=self.season_date)
 
         # router instance for specific endpoints
         self.router = Router(name=self.name)
@@ -51,7 +52,7 @@ class ComunioScore:
         self.comuniodb = ComunioDB(comunio_user=self.comunio_user, comunio_pass=self.comunio_pass, **dbparams)
 
         # create LiveData instance
-        self.livedata = LiveData(season_date=self.season_date, **dbparams)
+        self.livedata = LiveData(**dbparams)
         self.livedata.register_update_squad_event_handler(func=self.comuniodb.update_linedup_squad)
         self.livedata.register_telegram_send_event_handler(func=self.telegram.new_msg)
 
@@ -65,7 +66,7 @@ class ComunioScore:
         self.matchscheduler.register_livedata_event_handler(func=self.livedata.fetch)
 
         # create SofascoreDB instance
-        self.sofascoredb = SofascoreDB(season_date=self.season_date, **dbparams)
+        self.sofascoredb = SofascoreDB(**dbparams)
         self.sofascoredb.register_matchscheduler_event_handler(func=self.matchscheduler.new_event)
         self.sofascoredb.register_comunio_user_data(func=self.comuniodb.get_comunio_user_data)
 
