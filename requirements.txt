@@ -2,3 +2,4 @@ flask>=1.1.1
 psycopg2>=2.8.3
 requests>=2.22.0
 python-telegram-bot>=12.1.1
+scraperapi-sdk>=0.2.2

@@ -6,6 +6,7 @@ __email__ = "christian.bierschneider@web.de"
 __license__ = "MIT"
 
 import os
+from ComunioScore.comunio_request import ComunioRequest
 from ComunioScore.dbhandler import DBHandler
 from ComunioScore.comunio import Comunio
 from ComunioScore.api import APIHandler

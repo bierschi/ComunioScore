@@ -33,10 +33,10 @@ class DBHandler:
                 self.dbinserter = DBInserter()
                 self.dbfetcher = DBFetcher()
 
-                self.comunioscore_schema = "comunioscore"
-                self.comunioscore_table_auth = "auth"
-                self.comunioscore_table_user = "user"
-                self.comunioscore_table_squad = "squad"
+                self.comunioscore_schema       = "comunioscore"
+                self.comunioscore_table_auth   = "auth"
+                self.comunioscore_table_user   = "user"
+                self.comunioscore_table_squad  = "squad"
                 self.comunioscore_table_season = "season"
                 self.comunioscore_table_points = "points"
                 self.postgres = True
@@ -56,10 +56,10 @@ class DBHandler:
                 self.dbinserter = DBInserter()
                 self.dbfetcher = DBFetcher()
 
-                self.comunioscore_schema = "main"
-                self.comunioscore_table_auth = "auth"
-                self.comunioscore_table_user = "user"
-                self.comunioscore_table_squad = "squad"
+                self.comunioscore_schema       = "main"
+                self.comunioscore_table_auth   = "auth"
+                self.comunioscore_table_user   = "user"
+                self.comunioscore_table_squad  = "squad"
                 self.comunioscore_table_season = "season"
                 self.comunioscore_table_points = "points"
                 self.postgres = False
@@ -81,22 +81,23 @@ class DBHandler:
             self.dbcreator.build(obj=Schema(name=self.comunioscore_schema))
 
         # create table if not exists auth
-        self.logger.info("Create Table {}".format(self.comunioscore_table_auth))
-        self.dbcreator.build(obj=Table(self.comunioscore_table_auth,
-                                       Column(name="timestamp_utc", type="bigint"),
-                                       Column(name="datetime", type="text"),
-                                       Column(name="expires_in", type="Integer"),
-                                       Column(name="expire_timestamp_utc", type="bigint"),
-                                       Column(name="expire_datetime", type="text"),
-                                       Column(name="access_token", type="text"),
-                                       Column(name="token_type", type="text"),
-                                       Column(name="refresh_token", type="text"),
-                                       schema=self.comunioscore_schema))
+        #self.logger.info("Create Table {}".format(self.comunioscore_table_auth))
+        #self.dbcreator.build(obj=Table(self.comunioscore_table_auth,
+        #                               Column(name="timestamp_utc", type="bigint"),
+        #                               Column(name="datetime", type="text"),
+        #                               Column(name="expires_in", type="Integer"),
+        #                               Column(name="expire_timestamp_utc", type="bigint"),
+        #                               Column(name="expire_datetime", type="text"),
+        #                               Column(name="access_token", type="text"),
+        #                               Column(name="token_type", type="text"),
+        #                               Column(name="refresh_token", type="text"),
+        #                               schema=self.comunioscore_schema))
 
-        # create table if not exists communityuser
+        # create table if not exists user
         self.logger.info("Create Table {}".format(self.comunioscore_table_user))
         self.dbcreator.build(obj=Table(self.comunioscore_table_user,
                                      Column(name="userid", type="bigint", prim_key=True),
+                                     Column(name="login", type="text"),
                                      Column(name="username", type="text"),
                                      Column(name="community", type="text"),
                                      Column(name="points", type="integer"),

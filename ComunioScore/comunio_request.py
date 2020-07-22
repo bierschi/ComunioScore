@@ -79,6 +79,8 @@ class ComunioRequest:
         """
         self.logger.info("Login to Comunio with username {}".format(username))
 
+        ComunioRequest.username = username
+        ComunioRequest.password = password
         login_form = [('username', username), ('password', password)]
 
         try:

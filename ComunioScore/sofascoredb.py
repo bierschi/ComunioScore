@@ -224,15 +224,15 @@ class SofascoreDB(DBHandler, Thread):
         """
         self.logger.info("Insert points data into database")
 
-        points_sql = "insert into {}.{} (userid, username, match_id, match_day, hometeam, awayteam) " \
+        points_sql = "insert into {}.{} (userid, login, match_id, match_day, hometeam, awayteam) " \
                      "values (%s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema, self.comunioscore_table_points)
 
         points_table_list = list()
         if self.comunio_user_data_event_handler:
-            player_standing = self.comunio_user_data_event_handler()
-            for player in player_standing:
-                userid = player['id']
-                username = player['name'].strip()
+            user_data = self.comunio_user_data_event_handler()
+            for user in user_data:
+                userid = user['id']
+                username = user['name']
                 for matchday in self.season_data:
                     points_table_list.append((userid, username, matchday['matchId'], matchday['matchDay'], matchday['homeTeam'], matchday['awayTeam']))
 

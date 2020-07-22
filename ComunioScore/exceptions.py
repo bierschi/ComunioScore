@@ -25,6 +25,7 @@ class SofascoreRequestError(Exception):
     pass
 
 
-class InvalidAccessToken(Exception):
-    """InvalidAccessToken"""
+class ComunioAccessTokenError(Exception):
+    """ComunioAccessTokenError"""
     pass
+
