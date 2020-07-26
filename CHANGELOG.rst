@@ -10,3 +10,4 @@
 - 08.05.2020: Updated the version to 1.0.9, Improved the SequenceMatcher comparison
 - 17.05.2020: Updated the version to 1.0.11, Improved the livedata fetcher for collecting data during matches
 - 22.07.2020: Updated the version to 1.0.13, Added scraper client for the Sofascore API
+- 26.07.2020: Updated the version to 1.0.14, Updated the points database table

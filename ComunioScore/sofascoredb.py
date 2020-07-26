@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, update_season_frequence=21600, query_match_data_frequence=7200, **dbparams):
+    def __init__(self, update_season_frequence=21600, query_match_data_frequence=7200, scraper_requests_frequence=21600, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -27,6 +27,7 @@ class SofascoreDB(DBHandler, Thread):
         # attributes for the update frequence
         self.update_season_frequence = update_season_frequence        # 21600 seconds (6h)
         self.query_match_data_frequence = query_match_data_frequence  # 7200 seconds (2h)
+        self.scraper_requests_frequence = scraper_requests_frequence  # 21600 seconds (6h)
 
         self.running = True
 
@@ -37,6 +38,7 @@ class SofascoreDB(DBHandler, Thread):
         # counters set to zero
         self.update_season_counter = 0
         self.query_match_data_counter = 0
+        self.scraper_requests_counter = 0
 
         # create BundesligaScore instance
         self.bundesliga = BundesligaScore()
@@ -56,12 +58,14 @@ class SofascoreDB(DBHandler, Thread):
         self.insert_points()
         sleep(1)
         self.query_match_data()
+        self.scraper_account_requests()
         self.logger.info("Start sofascoredb run thread!")
 
         while self.running:
             sleep(1)
             self.update_season_counter += 1
             self.query_match_data_counter += 1
+            self.scraper_requests_counter += 1
 
             if self.query_match_data_counter > self.query_match_data_frequence:
                 self.query_match_data()
@@ -69,6 +73,8 @@ class SofascoreDB(DBHandler, Thread):
             if self.update_season_counter > self.update_season_frequence:
                 self.update_season()
                 self.update_season_counter = 0
+            if self.scraper_requests_counter > self.scraper_requests_frequence:
+                self.scraper_account_requests()
 
     def register_matchscheduler_event_handler(self, func):
         """ register the matchscheduler event handler function
@@ -182,7 +188,7 @@ class SofascoreDB(DBHandler, Thread):
 
         match_sql = "select * from {}.{} where match_day=%s and scheduled='false'".format(self.comunioscore_schema, self.comunioscore_table_season)
         postponed_matches_sql = "select * from {}.{} where match_day<%s and match_type='notstarted' and scheduled='false'".format(self.comunioscore_schema, self.comunioscore_table_season)
-        #next_match_day = 26
+        next_match_day = 34
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
         postponed_matches_data = self.dbfetcher.all(sql=postponed_matches_sql, data=(next_match_day, ))
 
@@ -226,12 +232,13 @@ class SofascoreDB(DBHandler, Thread):
         """
         self.logger.info("Insert points data into database")
 
-        points_sql = "insert into {}.{} (userid, login, match_id, match_day, hometeam, awayteam) " \
+        points_sql = "insert into {}.{} (userid, username, match_id, match_day, hometeam, awayteam) " \
                      "values (%s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema, self.comunioscore_table_points)
 
         points_table_list = list()
         if self.comunio_user_data_event_handler:
             user_data = self.comunio_user_data_event_handler()
+
             for user in user_data:
                 userid = user['id']
                 username = user['name']
@@ -257,3 +264,15 @@ class SofascoreDB(DBHandler, Thread):
             self.dbinserter.sql(sql=sql, autocommit=True)
         except DBInserterError as ex:
             self.logger.error(ex)
+
+    def scraper_account_requests(self):
+        """ logs the scraper account requests
+
+        """
+
+        scraper_requests = self.bundesliga.get_scraper_requests()
+        requestCount= scraper_requests['requestCount']
+        requestLimit = scraper_requests['requestLimit']
+        self.logger.info("Scraper request {} from Limit of {}".format(requestCount, requestLimit))
+
+        # TODO send telegram msg
