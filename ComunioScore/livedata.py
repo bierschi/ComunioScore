@@ -39,7 +39,7 @@ class LiveData(DBHandler):
         self.pointcalculator = PointCalculator()
 
         # sql
-        self.user_sql = "select userid, login from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
+        self.user_sql = "select userid, username from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
         self.squad_sql = "select playername, playerposition, club  from {}.{} where userid = %s and linedup = 'true' ".format(self.comunioscore_schema, self.comunioscore_table_squad)
         self.comunio_users = self.dbfetcher.all(sql=self.user_sql)
 
