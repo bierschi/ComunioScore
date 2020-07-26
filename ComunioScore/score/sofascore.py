@@ -2,6 +2,7 @@ import logging
 import requests
 
 from scraper_api import ScraperAPIClient
+from ComunioScore.exceptions import SofascoreRequestError
 
 
 class SofaScore:
@@ -30,6 +31,19 @@ class SofaScore:
 
         self.headers = {'Accept': 'application/json'}
 
+    def __del__(self):
+        """ destructor
+
+        """
+        self.close()
+
+    def close(self):
+        """ closes the session object cleanly
+
+        """
+        self.session.close()
+        self.session.cookies.clear()
+
     @classmethod
     def init_scraper(cls, api_key):
         """ inits the scraper client
@@ -39,6 +53,14 @@ class SofaScore:
         # create the ScraperAPIClient
         cls.scraper = ScraperAPIClient(api_key)
 
+    @classmethod
+    def get_scraper_requests(cls):
+        """ get scraper account infos like number of requests
+
+        :return: json dict
+        """
+        return cls.scraper.account()
+
     def __request_api(self, url):
         """ request data from sofascore url
 
@@ -47,7 +69,10 @@ class SofaScore:
         :return: json dict
         """
         try:
-            return SofaScore.scraper.get(url=url).json()
+            if SofaScore.scraper is not None:
+                return SofaScore.scraper.get(url=url).json()
+            else:
+                raise SofascoreRequestError("Sofascore scraper client is not initalized! Please call first init_scraper(api_key='')")
         except requests.exceptions.RequestException as ex:
             self.logger.error("Could no retrieve data from Sofascore: {}".format(ex))
             return {}

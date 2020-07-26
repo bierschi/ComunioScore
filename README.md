@@ -1,4 +1,4 @@
-## Maps the [sofascore](https://www.sofascore.com/de/) rating to [comunio](https://www.comunio.de/home) players
+## Maps the [SofaScore](https://www.sofascore.com/de/) rating to [Comunio](https://www.comunio.de/home) players
 [![Build Status](https://travis-ci.org/bierschi/ComunioScore.png?branch=master)](https://travis-ci.org/bierschi/ComunioScore) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 - Get current ranking of all comunio user within the community
 - Periodic messages for player rating, goals and offs

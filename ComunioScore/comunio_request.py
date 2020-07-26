@@ -10,7 +10,8 @@ class ComunioRequest:
 
     USAGE:
             comrequest = ComunioRequest()
-            comrequest.standings()
+            if comrequest.login(username='', password='')
+                comrequest.standings()
     """
     token = None
     community_id = None
@@ -38,8 +39,7 @@ class ComunioRequest:
         """ destructor
 
         """
-        self.session.close()
-        self.session.cookies.clear()
+        self.close()
 
     def __set_user_and_community_info(self):
         """ sets user and community specific attributes
@@ -63,12 +63,26 @@ class ComunioRequest:
         self.communityname          = json_data['community']['name']
         ComunioRequest.community_id = json_data['community']['id']
 
+    def close(self):
+        """ closes the session object cleanly
+
+        """
+        self.session.close()
+        self.session.cookies.clear()
+
     def get_community_name(self):
         """ get community name from logged in user
 
         :return: community name as string
         """
         return self.communityname
+
+    def get_login_userid(self):
+        """ get the userid from the logged in user
+
+        :return: userid
+        """
+        return self.userid
 
     def login(self, username, password):
         """ comunio login with username and password
