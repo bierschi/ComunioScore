@@ -1,12 +1,30 @@
+import os
 import unittest
-from ComunioScore.score import BundesligaScore
+import configparser
+
+from ComunioScore.score import SofaScore, BundesligaScore
+from ComunioScore import ROOT_DIR
 
 
 class TestBundesligaScore(unittest.TestCase):
 
     def setUp(self) -> None:
 
-        self.bundesliga = BundesligaScore(season_date="2019-08-20")
+        # load local config file
+        self.config = configparser.ConfigParser()
+        self.config.read(ROOT_DIR + '/config/cfg.ini')
+
+        # ScraperAPI config
+        try:
+            self.apikey = self.config.get('ScraperAPI', 'apikey')
+        except (KeyError, configparser.NoSectionError) as e:
+            self.apikey = os.environ['ScraperAPI']
+
+        SofaScore.init_scraper(api_key=self.apikey)
+
+        self.bundesliga = BundesligaScore()
+        self.bundesliga.init_season_data(season_date="2020-05-15")
+
         self.match_id = "8272345"
 
     def test_ids_for_matchday(self):
@@ -50,7 +68,8 @@ class TestBundesligaScore(unittest.TestCase):
         self.assertTrue(is_finished, msg="is_finished must be True!")
 
     def tearDown(self) -> None:
-        pass
+
+        self.bundesliga.close()
 
 
 if __name__ == '__main__':
