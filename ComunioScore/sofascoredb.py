@@ -75,6 +75,7 @@ class SofascoreDB(DBHandler, Thread):
                 self.update_season_counter = 0
             if self.scraper_requests_counter > self.scraper_requests_frequence:
                 self.scraper_account_requests()
+                self.scraper_requests_counter = 0
 
     def register_matchscheduler_event_handler(self, func):
         """ register the matchscheduler event handler function
