@@ -12,3 +12,4 @@
 - 22.07.2020: Updated the version to 1.0.13, Added scraper client for the Sofascore API
 - 26.07.2020: Updated the version to 1.0.14, Updated the points database table
 - 27.07.2020: Updated the version to 1.0.15, Removed typo in sofascoredb class
+- 29.07.2020: Updated the version to 1.0.16, Updated None type error

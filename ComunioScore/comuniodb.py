@@ -52,7 +52,7 @@ class ComunioDB(DBHandler, Thread):
         self.insert_comunio_user()
         self.insert_squad()
 
-        self.logger.info("Start comuniodb run thread!")
+        self.logger.info("Start Comuniodb run thread!")
         while self.running:
             sleep(self.update_frequence)  # updates comunio data every 6h (21600)
 
@@ -67,7 +67,7 @@ class ComunioDB(DBHandler, Thread):
 
         """
 
-        self.logger.info("Insert comunio {} data into database".format(self.comunioscore_table_user))
+        self.logger.info("Comuniodb insert comunio {} data into database".format(self.comunioscore_table_user))
 
         comuniouser = list()
 
@@ -89,7 +89,7 @@ class ComunioDB(DBHandler, Thread):
         """ updates comunio user data in the database table
 
         """
-        self.logger.info("Updating comunio {} data in database".format(self.comunioscore_table_user))
+        self.logger.info("Comuniodb updating comunio {} data in database".format(self.comunioscore_table_user))
 
         self.user_data = self.comunio.get_all_user_points_and_teamvalues()
         communityname = self.comunio.get_community_name()
@@ -108,7 +108,7 @@ class ComunioDB(DBHandler, Thread):
         """ deletes comunio user data from database
 
         """
-        self.logger.info("Deleting comunio {} data from database".format(self.comunioscore_table_user))
+        self.logger.info("Comuniodb deleting comunio {} data from database".format(self.comunioscore_table_user))
 
         sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
 
@@ -121,7 +121,7 @@ class ComunioDB(DBHandler, Thread):
         """ inserts squad data into database
 
         """
-        self.logger.info("Insert {} data into database".format(self.comunioscore_table_squad))
+        self.logger.info("Comuniodb insert {} data into database".format(self.comunioscore_table_squad))
 
         users_squads = self.comunio.get_all_user_squads()
         sql = "insert into {}.{} (userid, username, playername, playerposition, club, linedup) values(%s, %s, %s, %s, %s, %s)"\
@@ -139,7 +139,7 @@ class ComunioDB(DBHandler, Thread):
         """ updates the squad data from comunio user
 
         """
-        self.logger.info("Updating {} data".format(self.comunioscore_table_squad))
+        self.logger.info("Comuniodb updating {} data".format(self.comunioscore_table_squad))
 
         users_squads = self.comunio.get_all_user_squads()
         sql = "insert into {}.{} (userid, username, playername, playerposition, club, linedup) values(%s, %s, %s, %s, %s, %s)"\
@@ -158,7 +158,7 @@ class ComunioDB(DBHandler, Thread):
 
         """
 
-        self.logger.info("Deleting {} data from database".format(self.comunioscore_table_squad))
+        self.logger.info("Comuniodb deleting {} data from database".format(self.comunioscore_table_squad))
 
         if self.postgres:
             sql = "truncate {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad)
@@ -182,7 +182,7 @@ class ComunioDB(DBHandler, Thread):
         """ updates linedup squad in database table
 
         """
-        self.logger.info("Updating linedup squad in database table {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad))
+        self.logger.info("Comuniodb updating linedup squad in database table {}.{}".format(self.comunioscore_schema, self.comunioscore_table_squad))
 
         user_sql = "select userid from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_user)
         linedup_sql = "update {}.{} set linedup = %s where userid = %s and playername = %s".format(self.comunioscore_schema, self.comunioscore_table_squad)
