@@ -59,7 +59,7 @@ class SofascoreDB(DBHandler, Thread):
         sleep(1)
         self.query_match_data()
         self.scraper_account_requests()
-        self.logger.info("Start sofascoredb run thread!")
+        self.logger.info("Start Sofascoredb run thread!")
 
         while self.running:
             sleep(1)
@@ -96,7 +96,7 @@ class SofascoreDB(DBHandler, Thread):
         """ insert season data into database
 
         """
-        self.logger.info("Insert season data into database")
+        self.logger.info("Sofascoredb insert season data into database")
 
         sql = "insert into {}.{} (match_day, match_type, match_id, start_timestamp, start_datetime, homeTeam, " \
               "awayTeam, homeScore, awayScore, season, scheduled) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
@@ -119,7 +119,7 @@ class SofascoreDB(DBHandler, Thread):
         """ updates season data into database
 
         """
-        self.logger.info("Updating season data")
+        self.logger.info("Sofascoredb updating season data in database")
 
         self.season_data = self.bundesliga.season_data()
 
@@ -136,7 +136,7 @@ class SofascoreDB(DBHandler, Thread):
         """ deletes season data from database
 
         """
-        self.logger.info("Deleting season data from database")
+        self.logger.info("Sofascoredb deleting season data from database")
 
         sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_season)
 
@@ -173,7 +173,7 @@ class SofascoreDB(DBHandler, Thread):
         """ queries the match day data from season table and registers new match events
 
         """
-        self.logger.info("Query match data from database")
+        self.logger.info("Sofascoredb queries match data from database")
 
         last_match_day = self.get_last_match_day()
 
@@ -231,25 +231,31 @@ class SofascoreDB(DBHandler, Thread):
         """ inserts all data into points table
 
         """
-        self.logger.info("Insert points data into database")
+        self.logger.info("Sofascoredb insert points data into database")
 
         points_sql = "insert into {}.{} (userid, username, match_id, match_day, hometeam, awayteam) " \
                      "values (%s, %s, %s, %s, %s, %s)".format(self.comunioscore_schema, self.comunioscore_table_points)
 
         points_table_list = list()
         if self.comunio_user_data_event_handler:
-            user_data = self.comunio_user_data_event_handler()
+            user_data = self.comunio_user_data_event_handler() # TODO none type is not iterable
 
-            for user in user_data:
-                userid = user['id']
-                username = user['name']
-                for matchday in self.season_data:
-                    points_table_list.append((userid, username, matchday['matchId'], matchday['matchDay'], matchday['homeTeam'], matchday['awayTeam']))
+            if user_data is not None:
 
-            try:
-                self.dbinserter.many_rows(sql=points_sql, datas=points_table_list)
-            except DBInserterError as ex:
-                self.logger.error(ex)
+                for user in user_data:
+                    userid = user['id']
+                    username = user['name']
+                    for matchday in self.season_data:
+                        points_table_list.append((userid, username, matchday['matchId'], matchday['matchDay'], matchday['homeTeam'], matchday['awayTeam']))
+
+                try:
+                    self.dbinserter.many_rows(sql=points_sql, datas=points_table_list)
+                except DBInserterError as ex:
+                    self.logger.error(ex)
+            else:
+                self.logger.error("Could not insert points data into database because user_data is None. Retry in 5 seconds")
+                sleep(5)
+                self.insert_points()
         else:
             self.logger.error("Event Handler for comunio user data is None!")
 
@@ -257,7 +263,7 @@ class SofascoreDB(DBHandler, Thread):
         """ deletes all data from points table
 
         """
-        self.logger.info("Deleting points data from database")
+        self.logger.info("Sofascoredb deleting points data from database")
 
         sql = "delete from {}.{}".format(self.comunioscore_schema, self.comunioscore_table_points)
 
