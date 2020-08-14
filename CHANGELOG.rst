@@ -13,3 +13,4 @@
 - 26.07.2020: Updated the version to 1.0.14, Updated the points database table
 - 27.07.2020: Updated the version to 1.0.15, Removed typo in sofascoredb class
 - 29.07.2020: Updated the version to 1.0.16, Updated None type error
+- 14.08.2020: Updated the version to 1.0.17, Updated typo in sofascoredb, Added skip statement in sofascore test classes

@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, update_season_frequence=21600, query_match_data_frequence=7200, scraper_requests_frequence=21600, **dbparams):
+    def __init__(self, update_season_frequence=604800, query_match_data_frequence=7200, scraper_requests_frequence=43200, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -25,9 +25,9 @@ class SofascoreDB(DBHandler, Thread):
         Thread.__init__(self)
 
         # attributes for the update frequence
-        self.update_season_frequence = update_season_frequence        # 21600 seconds (6h)
+        self.update_season_frequence = update_season_frequence        # 604800 seconds (once in a week)
         self.query_match_data_frequence = query_match_data_frequence  # 7200 seconds (2h)
-        self.scraper_requests_frequence = scraper_requests_frequence  # 21600 seconds (6h)
+        self.scraper_requests_frequence = scraper_requests_frequence  # 43200 seconds (12h)
 
         self.running = True
 
@@ -189,7 +189,7 @@ class SofascoreDB(DBHandler, Thread):
 
         match_sql = "select * from {}.{} where match_day=%s and scheduled='false'".format(self.comunioscore_schema, self.comunioscore_table_season)
         postponed_matches_sql = "select * from {}.{} where match_day<%s and match_type='notstarted' and scheduled='false'".format(self.comunioscore_schema, self.comunioscore_table_season)
-        next_match_day = 34
+        #next_match_day = 34
         match_day_data = self.dbfetcher.all(sql=match_sql, data=(next_match_day, ))
         postponed_matches_data = self.dbfetcher.all(sql=postponed_matches_sql, data=(next_match_day, ))
 
@@ -238,7 +238,7 @@ class SofascoreDB(DBHandler, Thread):
 
         points_table_list = list()
         if self.comunio_user_data_event_handler:
-            user_data = self.comunio_user_data_event_handler() # TODO none type is not iterable
+            user_data = self.comunio_user_data_event_handler()
 
             if user_data is not None:
 

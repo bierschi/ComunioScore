@@ -67,7 +67,7 @@ class Logger:
         return Logger.__instance
 
     def __create_log_folder(self, log_folder):
-        """creates log folder in '/var/log/bierschi/ComunioScoreApp'
+        """creates log folder in '/var/log/ComunioScore'
 
         :return bool, True if log folder was successfully created
         """
@@ -140,10 +140,3 @@ class Logger:
         :param msg: string messages
         """
         self.logger.error(msg)
-
-
-if __name__ == '__main__':
-    logger = Logger()
-    for i in range(0, 1000):
-        logger.info("test_message")
-        logger.error("test_error")

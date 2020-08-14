@@ -105,7 +105,7 @@ class ComunioRequest:
 
         # log error
         if login_request.status_code == 400 or not (login_request.status_code // 100 == 2):
-            error_data = json.loads(login_request.text)
+            error_data = login_request.text
             self.logger.error("StatusCode: {} with Description: {}".format(login_request.status_code, error_data))
             return False
 
