@@ -6,6 +6,7 @@ from ComunioScore.score import SofaScore
 from ComunioScore import ROOT_DIR
 
 
+@unittest.skip
 class TestSofaScore(unittest.TestCase):
 
     def setUp(self) -> None:

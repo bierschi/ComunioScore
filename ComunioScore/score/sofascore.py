@@ -6,7 +6,7 @@ from ComunioScore.exceptions import SofascoreRequestError
 
 
 class SofaScore:
-    """ Base class SofaScore to retrieve statistics from  sofascore.com
+    """ Base class SofaScore to retrieve statistics from sofascore.com
 
     USAGE:
             sofascore = SofaScore()
@@ -74,7 +74,7 @@ class SofaScore:
             else:
                 raise SofascoreRequestError("Sofascore scraper client is not initalized! Please call first init_scraper(api_key='')")
         except requests.exceptions.RequestException as ex:
-            self.logger.error("Could no retrieve data from Sofascore: {}".format(ex))
+            self.logger.error("Could not retrieve data from Sofascore: {}".format(ex))
             return {}
         except ValueError as ex:
             self.logger.error(ex)

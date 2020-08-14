@@ -6,6 +6,7 @@ from ComunioScore.score import SofaScore, BundesligaScore
 from ComunioScore import ROOT_DIR
 
 
+@unittest.skip
 class TestBundesligaScore(unittest.TestCase):
 
     def setUp(self) -> None:
