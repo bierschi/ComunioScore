@@ -59,7 +59,11 @@ class SofaScore:
 
         :return: json dict
         """
-        return cls.scraper.account()
+        try:
+            return cls.scraper.account()
+        except Exception as ex:
+            logging.getLogger('ComunioScore').error(ex)
+            return {}
 
     def __request_api(self, url):
         """ request data from sofascore url

@@ -56,7 +56,7 @@ class Comunio(ComunioRequest):
                 break
             return userids
 
-        except ComunioAccessTokenError as ex:
+        except (ComunioAccessTokenError, KeyError) as ex:
             self.logger.error(ex)
             self.__handle_comunio_login()
             return self.get_all_user_ids()
@@ -86,7 +86,7 @@ class Comunio(ComunioRequest):
                 comunio_user_data.append(user_data)
             return comunio_user_data
 
-        except ComunioAccessTokenError as ex:
+        except (ComunioAccessTokenError, KeyError) as ex:
             self.logger.error(ex)
             self.__handle_comunio_login()
             return self.get_all_user_squads()

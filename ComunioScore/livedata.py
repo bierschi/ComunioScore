@@ -117,6 +117,7 @@ class LiveData(DBHandler):
                 self.telegram_lock.acquire()
                 self.telegram_send_event_handler(text=livedata_msg)
                 self.telegram_lock.release()
+                self.msg_rate_timer = 0
 
         # collect livedata as long as match is not finished
         #while self.running:
@@ -125,14 +126,10 @@ class LiveData(DBHandler):
                 update_livedata(send=True)
             else:
                 update_livedata(send=False)
-            sleep(180)  # update data every 3 minutes
-            self.msg_rate_timer += 180
+            sleep(480)  # update data every 8 minutes
+            self.msg_rate_timer += 480
 
-        # update livedata for the last time
-        if self.bundesliga.is_finished(matchid=match_id):
-            update_livedata()
-
-        # after match is finished
+        # after match is finished send msg
         live_data_end_msg = "Finished fetching live data from match *{}* vs *{}*".format(home_team, away_team)
         self.logger.info(live_data_end_msg)
 
@@ -141,6 +138,12 @@ class LiveData(DBHandler):
             self.telegram_lock.acquire()
             self.telegram_send_event_handler(text=live_data_end_msg)
             self.telegram_lock.release()
+
+        # update livedata for the last time
+        if self.bundesliga.is_finished(matchid=match_id):
+            sleep(600)  # sleep 10 minutes and update last time
+            self.logger.info("Match {} vs {} finished, updating live data the last time after 10 min".format(home_team, away_team))
+            update_livedata(send=True)
 
         # set linedup squad to false
         LiveData.is_squad_updated = False
@@ -465,3 +468,10 @@ class LiveData(DBHandler):
         :param notify: notify flag
         """
         self.is_notify = notify
+
+    def get_linedup_squad(self):
+        """ get the linedup squad
+
+        :return: linedup squad
+        """
+        pass
