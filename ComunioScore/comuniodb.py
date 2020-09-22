@@ -16,7 +16,7 @@ class ComunioDB(DBHandler, Thread):
             comuniodb.start()
 
     """
-    def __init__(self, comunio_user, comunio_pass, update_frequence=7200, **dbparams):
+    def __init__(self, comunio_user, comunio_pass, update_frequence=21600, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class ComunioDB')
 
@@ -26,7 +26,7 @@ class ComunioDB(DBHandler, Thread):
 
         self.comunio_username = comunio_user
         self.comunio_password = comunio_pass
-        self.update_frequence = update_frequence
+        self.update_frequence = update_frequence  # 21600 (6h)
 
         # create comunio instance
         self.comunio = Comunio()
@@ -151,6 +151,8 @@ class ComunioDB(DBHandler, Thread):
                 for player in user['squad']:
                     self.dbinserter.row(sql=sql, data=(user['id'], user['name'], player['name'], player['position'], player['club'], player['linedup']))
         except DBInserterError as ex:
+            self.logger.error(ex)
+        except Exception as ex:
             self.logger.error(ex)
 
     def delete_squad(self):

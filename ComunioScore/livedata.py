@@ -126,8 +126,8 @@ class LiveData(DBHandler):
                 update_livedata(send=True)
             else:
                 update_livedata(send=False)
-            sleep(180)  # update data every 3 minutes
-            self.msg_rate_timer += 180
+            sleep(480)  # update data every 8 minutes
+            self.msg_rate_timer += 480
 
         # after match is finished send msg
         live_data_end_msg = "Finished fetching live data from match *{}* vs *{}*".format(home_team, away_team)
@@ -141,7 +141,7 @@ class LiveData(DBHandler):
 
         # update livedata for the last time
         if self.bundesliga.is_finished(matchid=match_id):
-            sleep(600)
+            sleep(600)  # sleep 10 minutes and update last time
             self.logger.info("Match {} vs {} finished, updating live data the last time after 10 min".format(home_team, away_team))
             update_livedata(send=True)
 
@@ -468,3 +468,10 @@ class LiveData(DBHandler):
         :param notify: notify flag
         """
         self.is_notify = notify
+
+    def get_linedup_squad(self):
+        """ get the linedup squad
+
+        :return: linedup squad
+        """
+        pass

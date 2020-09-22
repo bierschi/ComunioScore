@@ -16,7 +16,7 @@ class SofascoreDB(DBHandler, Thread):
             sofascoredb.start()
 
     """
-    def __init__(self, update_season_frequence=604800, query_match_data_frequence=7200, scraper_requests_frequence=43200, **dbparams):
+    def __init__(self, update_season_frequence=604800, query_match_data_frequence=28800, scraper_requests_frequence=43200, **dbparams):
         self.logger = logging.getLogger('ComunioScore')
         self.logger.info('Create class SofascoreDB')
 
@@ -26,7 +26,7 @@ class SofascoreDB(DBHandler, Thread):
 
         # attributes for the update frequence
         self.update_season_frequence = update_season_frequence        # 604800 seconds (once in a week)
-        self.query_match_data_frequence = query_match_data_frequence  # 7200 seconds (2h)
+        self.query_match_data_frequence = query_match_data_frequence  # 28800 seconds (8h)
         self.scraper_requests_frequence = scraper_requests_frequence  # 43200 seconds (12h)
 
         self.running = True
@@ -278,8 +278,10 @@ class SofascoreDB(DBHandler, Thread):
         """
 
         scraper_requests = self.bundesliga.get_scraper_requests()
-        requestCount= scraper_requests['requestCount']
-        requestLimit = scraper_requests['requestLimit']
-        self.logger.info("Scraper request {} from Limit of {}".format(requestCount, requestLimit))
-
+        if ('requestCount' and 'requestLimit') in scraper_requests.keys():
+            request_count = scraper_requests['requestCount']
+            request_limit = scraper_requests['requestLimit']
+            self.logger.info("Scraper request {} from Limit of {}".format(request_count, request_limit))
+        else:
+            self.logger.error("Could not request the ScraperAPIClient account info!")
         # TODO send telegram msg
