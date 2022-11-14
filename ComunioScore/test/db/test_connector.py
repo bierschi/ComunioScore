@@ -9,7 +9,7 @@ class TestDBConnector(unittest.TestCase):
 
         # set up DBConnector instance
         self.connector = DBConnector()
-        self.connector.connect_psycopg(host="127.0.0.1", port=5432, username="postgres", password="postgres", dbname="postgres")
+        self.connector.connect_psycopg(host="192.168.178.200", port=5432, username="postgres", password="postgres", dbname="postgres")
 
     def test_get_cursor(self):
 

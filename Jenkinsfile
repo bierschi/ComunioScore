@@ -15,7 +15,7 @@ pipeline {
                         echo 'Test Coverage'
 
                         echo 'Style checks with pylint'
-                        sh 'pylint3 --reports=y ComunioScore/ || exit 0'
+                        sh 'pylint --reports=y ComunioScore/ || exit 0'
                     }
 
                  }
@@ -40,13 +40,6 @@ pipeline {
                         }
                     }
                  }
-
-                 stage('Deploy') {
-                    steps {
-                        echo "Deploy ComunioScore to target server"
-                        sshPublisher(publishers: [sshPublisherDesc(configName: 'christian@host1-bierschi', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'sudo dpkg -i projects/ComunioScore/$BUILD_NUMBER/ComunioScore_*.deb', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: 'ComunioScore/$BUILD_NUMBER', remoteDirectorySDF: false, removePrefix: 'dist_package', sourceFiles: 'dist_package/*.deb')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
-                    }
-                }
 
                 stage('Deploy to PyPI') {
                     when {
